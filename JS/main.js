@@ -1,7 +1,55 @@
 $(document).ready(function() {
 
-	$('#container').css('display', 'block');
+	$('#container').css('display', 'none');
     $('#login_section').css('display', 'block');
+
+    // Initialize socket.io.
+    // document.location.host returns the host of the current page.
+    var socket = io.connect('http://' + document.location.host);
+
+    // If a welcome message is received, it means the chat room is available.
+    // The Log In button will be then enabled.
+    socket.on(
+      'welcome',
+      function(message) {
+        $('#status').text(message);
+        $('#login').attr('disabled', false);
+      });
+
+    // If a login_ok message is received, proceed to the chat section.
+    socket.on(
+      'login_ok',
+      function() {
+        $('#login_section').css('display', 'none');
+        $('#container').css('display', 'block');
+        $('#status').text('Logged In.');
+      });
+
+    // If a login_failed message is received, stay in the login section but
+    // display an error message.
+    socket.on(
+      'login_failed',
+      function() {
+        $('#status').text('Failed to log in!');
+      });
+
+    // When the Log In button is clicked, the provided function will be called,
+    // which sends a login message to the server.
+    $('#login').click(function() {
+      var name = $('#name').val();
+      if (name) {
+        name = name.trim();
+        if (name.length > 0) {
+          socket.emit('login', { user_name: name });
+        }
+      }
+      // Clear the input field.
+      $('#name').val('');
+    });
+  });
+  
+  
+  
 	
 	var screenWidth = screen.availWidth;
 	//var screenHeight = screen.availHeight - 100;
