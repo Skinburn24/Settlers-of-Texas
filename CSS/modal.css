@@ -1,0 +1,45 @@
+#tradeModal 
+{
+	margin-left: 17%;
+}
+
+#tradeModal .modal-content
+{
+	width: 63%;
+}
+
+#tradeModal .modal-body .row 
+{
+	margin-bottom: 3px;
+	font-size: 75%;
+}
+
+#tradeModal .modal-body 
+{
+	margin-bottom: -5%;;
+}
+
+#tradeModal .modal-body form .row .col-md-4
+{
+	margin-left: 11%; 
+}
+#tradeModal .modal-body .row:nth-child(1)
+{
+	margin-top: -15px;
+	text-align: center; 
+	font-size: 110%;
+}
+
+#tradeModal .modal-body form, button[id="tradeButton"]
+{
+	margin-top: 15px;
+	margin-left: -1%;
+	width: 102%;
+}
+
+
+
+
+
+
+
