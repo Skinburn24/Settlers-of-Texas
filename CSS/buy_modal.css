@@ -1,0 +1,38 @@
+#buyModal 
+{
+	margin-left: 17%;
+}
+
+#buyModal .modal-content
+{
+	width: 63%;
+}
+
+#buyModal .modal-body .row 
+{
+	margin-bottom: 3px;
+	font-size: 75%;
+}
+
+#buyModal .modal-body 
+{
+	margin-bottom: -5%;
+}
+
+#buyModal .modal-body form .row .col-md-4
+{
+	margin-left: 11%; 
+}
+#buyModal .modal-body .row
+{
+	margin-top: 5px;
+	text-align: center; 
+	font-size: 110%;
+}
+
+#buyModal .modal-body form, button[id="buyButton"]
+{
+	margin-top: 15px;
+	margin-left: -1%;
+	width: 102%;
+}

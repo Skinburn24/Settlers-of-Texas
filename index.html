@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	
+    <!-- Bootstrap -->
+	<script defer="defer" src="/js/jquery.fullscreenBackground.js"></script>'
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+	<!-- Bootstrap Helper -->
+	<link href="/css/bootstrap-formhelpers.min.css" rel="stylesheet">
+	<!-- User Defined -->
+	<link href="/css/join-game.css" rel="stylesheet">
+	<link href="/css/send-trade-modal.css" rel="stylesheet">
+	<link href="/css/receive-trade-modal.css" rel="stylesheet">
+	<link href="/css/buy_modal.css" rel="stylesheet">
+
+  </head>
+	<body>
+	<div class="content">
+		<div class="login-section">
+		<form class="form-signin" role="form">
+			<input type="text" id="player-name" class="form-control" placeholder="Player Name" required autofocus>
+			<button type="button" id="join-game-button" class="btn btn-lg btn-primary btn-block">Join Game</button>
+		  </form>
+		</div>
+		
+		<div id="container"></div>
+
+		<!-- Send Trade Modal -->
+		<div class="modal fade" id="send-trade-modal" tabindex="-1" role="dialog" aria-labelledby="send-trade-modal-label" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="send-trade-modal-label"><b>Player Trade</b></h4>
+			  </div>
+			  <div class="modal-body">
+				<form role="form" id="send-trade-form">
+					<div id="player">
+						<label for="player-receiving">Player</label>
+						<input type="text" class="form-control bfh-number" id="player-receiving" data-min="0" data-max="3" data-wrap="true" value="1">
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label>They Will Get</label>
+						</div>
+						<div class="col-md-5">
+							<label> I Will Get</label>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-oil">Oil</label>
+							<input type="text" class="form-control bfh-number" id="receive-oil" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-oil">Oil</label>
+							<input type="text" class="form-control bfh-number" id="send-oil" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-cattle">Cattle</label>
+							<input type="text" class="form-control bfh-number" id="receive-cattle" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-cattle">Cattle</label>
+							<input type="text" class="form-control bfh-number" id="send-cattle" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-limestone">Limestone</label>
+							<input type="text" class="form-control bfh-number" id="receive-limestone" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-limestone">Limestone</label>
+							<input type="text" class="form-control bfh-number" id="send-limestone" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-cotton">Cotton</label>
+							<input type="text" class="form-control bfh-number" id="receive-cotton" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-cotton">Cotton</label>
+							<input type="text" class="form-control bfh-number" id="send-cotton" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-redclay">Red Clay</label>
+							<input type="text" class="form-control bfh-number" id="receive-redclay" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-redclay">Red Clay</label>
+							<input type="text" class="form-control bfh-number" id="send-redclay" data-min="0" value="0">
+						</div>
+					</div>
+				  <button type="button" id="send-trade-button" class="btn btn-primary">Send</button>
+				</form>
+			  </div>
+			  <div class="modal-footer">
+			  </div>
+			</div>
+		  </div>
+		</div>
+		</div>
+		
+		<!-- Receive Trade Modal -->
+		<div class="modal fade" id="receive-trade-modal" tabindex="-1" role="dialog" aria-labelledby="receive-trade-modal-label" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="receive-trade-modal-label"><b>Player Trade</b></h4>
+			  </div>
+			  <div class="modal-body">
+				<form role="form" id="receive-trade-form">
+					<div id="player">
+						<label for="player-sending">Player</label>
+						<output id="player-receiving"></output>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label>They Will Get</label>
+						</div>
+						<div class="col-md-5">
+							<label> I Will Get</label>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-oil">Oil</label>
+							<input type="text" class="form-control bfh-number" id="receive-oil" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-oil">Oil</label>
+							<input type="text" class="form-control bfh-number" id="send-oil" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-cattle">Cattle</label>
+							<input type="text" class="form-control bfh-number" id="receive-cattle" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-cattle">Cattle</label>
+							<input type="text" class="form-control bfh-number" id="send-cattle" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-limestone">Limestone</label>
+							<input type="text" class="form-control bfh-number" id="receive-limestone" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-limestone">Limestone</label>
+							<input type="text" class="form-control bfh-number" id="send-limestone" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-cotton">Cotton</label>
+							<input type="text" class="form-control bfh-number" id="receive-cotton" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-cotton">Cotton</label>
+							<input type="text" class="form-control bfh-number" id="send-cotton" data-min="0" value="0">
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="receive-redclay">Red Clay</label>
+							<input type="text" class="form-control bfh-number" id="receive-redclay" data-min="0" value="0">
+						</div>
+						<div class="col-md-5">
+							<label for="send-redclay">Red Clay</label>
+							<input type="text" class="form-control bfh-number" id="send-redclay" data-min="0" value="0">
+						</div>
+					</div>
+				  <button type="button" id="accept-trade-button" class="btn btn-primary">Accept</button>
+				  <button type="button" id="reject-trade-button" class="btn btn-primary">Reject</button>
+				  <button type="button" id="counter-trade-button" class="btn btn-primary">Counter</button>
+				</form>
+			  </div>
+			  <div class="modal-footer">
+			  </div>
+			</div>
+		  </div>
+		</div>
+		</div>
+
+		<div class="modal fade" id="buyModal" tabindex="-1" role="dialog" aria-labelledby="buyModalLabel" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="buyModalLabel"><b>Buy Menu</b></h4>
+			  </div>
+			  <div class="modal-body">
+				<form role="form" id="buyForm">
+					<div class="row">
+							<button type="button" id="buyOutpostButton" data-dismiss="modal" class="btn btn-primary">Buy Outpost</button>
+					</div>
+					<div class="row">
+							<label> Requires: A bunch of crap</label>
+					</div>									
+				  
+				</form>
+			  </div>
+			  <div class="modal-footer">
+			  </div>
+			</div>
+		  </div>
+		</div>
+		
+		<div id="background-image">
+			<img src="/IMG/join-game-background.png" alt="" width="1920" height="1200" />
+		</div>
+
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="http://d3lp1msu2r81bx.cloudfront.net/kjs/js/lib/kinetic-v5.0.2.min.js"></script>
+		<!-- Include all compiled plugins (below), or include individual files as needed -->
+		<script src="/js/bootstrap.min.js"></script>
+		<script defer="defer" src="/js/bootstrap-formhelpers.js"></script>
+		<script defer="defer" src="/js/main.js"></script>
+		<script defer="defer" src="/js/client-player.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	  </body>
+</html>

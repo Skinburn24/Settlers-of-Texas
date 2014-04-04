@@ -1,0 +1,74 @@
+#receive-trade-modal
+{
+	margin-left: 17%;
+}
+
+#receive-trade-modal #player
+{
+	text-align: center;
+	margin-top: -25px;
+	margin-bottom: 20px;
+	margin-left: 36%;
+	width: 30%;
+}
+
+#receive-trade-modal #player .input-group
+{
+	width: 130%;
+	margin: 0 auto;
+	margin-left: -12px;
+}
+
+#receive-trade-modal .modal-content
+{
+	width: 63%;
+}
+
+#receive-trade-modal .modal-body 
+{
+	margin-bottom: -5%;
+}
+
+#receive-trade-modal .modal-body .row 
+{
+	margin-bottom: 3px;
+	font-size: 75%;
+}
+
+#receive-trade-modal .modal-body form .row .col-md-5
+{
+	margin: 0px auto;
+	margin-left: 5%;
+}
+
+#receive-trade-modal .modal-body form .row .col-md-5 .input-group
+{
+	margin: 0px auto;
+	width: 130px;
+}
+
+#receive-trade-modal .modal-body form .row .col-md-5 .input-group input
+{
+	width: 100%;
+}
+
+#receive-trade-modal .modal-body .row:nth-child(2)
+{
+	margin-top: -15px;
+	text-align: center; 
+	font-size: 110%;
+}
+
+#receive-trade-modal .modal-body form, button[id="receive-trade-button"]
+{
+	margin-top: 15px;
+	margin-left: -1%;
+	width: 102%;
+}
+
+
+
+
+
+
+
