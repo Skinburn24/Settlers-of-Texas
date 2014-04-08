@@ -481,8 +481,8 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var hexSpacingX = trailWidth;
 	var hexSpacingY = .57735 * hexSpacingX; //tan(30) * hexSpacingX
 	//size of outposts/town
-	var settlementWidth = hexWidth * .2;
-	var settlementHeight = hexWidth * .2;
+	var settlementWidth = hexWidth * .25;
+	var settlementHeight = hexWidth * .25;
 	var settlementMoveRight = settlementWidth/2;
 	var settlementMoveLeft = 0 - settlementWidth/2;
 	var settlementMoveDown = settlementHeight/2;
@@ -1640,6 +1640,51 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		ontFamily: 'Calibri',
         fill: 'black'
 	});
+	var victoryPoints = new Kinetic.Image({
+		x: screenWidth * (.18229 - .02),
+		y: screenHeight - screenWidth * (.125 - .09),
+		width: screenWidth * .03208,
+		height: screenWidth * .03208,
+		Image: trophyClip
+	});
+	var victoryPointsText = new Kinetic.Text({
+		x: victoryPoints.getAbsolutePosition().x + victoryPoints.getHeight(),
+		y: victoryPoints.getAbsolutePosition().y + victoryPoints.getHeight() / 2 - (screenWidth * .005),
+		text: '0/10',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var trailLength = new Kinetic.Image({
+		x: screenWidth * (.18229 + .04),
+		y: screenHeight - screenWidth * (.125 - .09),
+		width: screenWidth * .03208,
+		height: screenWidth * .03208,
+		Image: trailClip
+	});
+	var trailLengthText = new Kinetic.Text({
+		x: trailLength.getAbsolutePosition().x + trailLength.getHeight() + (screenWidth * .002),
+		y: trailLength.getAbsolutePosition().y + trailLength.getHeight() / 2 - (screenWidth * .005),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var possePoints = new Kinetic.Image({
+		x: screenWidth * (.18229 + .095),
+		y: screenHeight - screenWidth * (.125 - .09),
+		width: screenWidth * .03208,
+		height: screenWidth * .03208,
+		Image: posseClip
+	});
+	var possePointsText = new Kinetic.Text({
+		x: possePoints.getAbsolutePosition().x + possePoints.getHeight() + (screenWidth * .001),
+		y: possePoints.getAbsolutePosition().y + possePoints.getHeight() / 2 - (screenWidth * .005),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
 	
 	menuLayer.add(menuUnderlay1);
 	menuLayer.add(menuUnderlay2);
@@ -1661,6 +1706,12 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	menuLayer.add(resourceLimestoneText);
 	menuLayer.add(resourceOil);
 	menuLayer.add(resourceOilText);
+	menuLayer.add(victoryPoints);
+	menuLayer.add(victoryPointsText);
+	menuLayer.add(trailLength);
+	menuLayer.add(trailLengthText);
+	menuLayer.add(possePoints);
+	menuLayer.add(possePointsText);
 	
 	canvas.add(menuLayer);
 	//console.log(canvas.toJSON());
