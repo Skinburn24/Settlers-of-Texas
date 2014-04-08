@@ -1,0 +1,38 @@
+#buy-modal
+{
+	margin-left: 17%;
+}
+
+##buy-modal .modal-content
+{
+	width: 63%;
+}
+
+#buy-modal .modal-body .row 
+{
+	margin-bottom: 3px;
+	font-size: 75%;
+}
+
+##buy-modal .modal-body 
+{
+	margin-bottom: -5%;
+}
+
+##buy-modal .modal-body form .row .col-md-4
+{
+	margin-left: 11%; 
+}
+##buy-modal .modal-body .row
+{
+	margin-top: 5px;
+	text-align: center; 
+	font-size: 110%;
+}
+
+##buy-modal .modal-body form, button[id="buy-outpost-button"]
+{
+	margin-top: 15px;
+	margin-left: -1%;
+	width: 102%;
+}
