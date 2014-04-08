@@ -87,6 +87,54 @@ var arrayImageAddreses = [ 'IMG/Board_2.png', 	//0
 					];
 preLoadImages(arrayImageAddreses).done(function(arrayImages){
 //websocket communication code
+		var messageCopy;
+
+		$('#accept-trade-button').click(function () {
+			socket.emit("trade_accepted", messageCopy);
+			$('#receive-trade-modal').modal('hide');
+			$('#receive-trade-form').find("input[type=text], textarea").val("0");
+			messageCopy = null;
+		});
+		
+		$('#reject-trade-button').click(function () {
+			var firstPlayer = messageCopy.firstPlayer;
+			var secondPlayer = messageCopy.secondPlayer;
+			socket.emit("trade_rejected", {firstPlayer: firstPlayer, secondPlayer: secondPlayer});
+			$('#receive-trade-modal').modal('hide');
+			$('#receive-trade-form').find("input[type=text], textarea").val("0");
+			messageCopy = null;
+		});
+		
+		$('#counter-trade-button').click(function() {
+			var firstPlayer = messageCopy.firstPlayer;
+			var secondPlayer = messageCopy.secondPlayer;
+		
+			var tradeTerms = [];
+			var $inputs = $('#receive-trade-form :input');
+			$inputs.each(function(i) {
+					tradeTerms[i] = $(this).val();
+			});
+			tradeTerms.splice(0,1);
+			console.log(tradeTerms);
+		
+			var firstPlayerResources = [];
+			var secondPlayerResources = [];
+			for(var i = 0; i < tradeTerms.length; i++) {
+				if(i % 2 === 0 ) {
+					firstPlayerResources.push(tradeTerms[i]);
+				}
+				else {
+					secondPlayerResources.push(tradeTerms[i]);
+				}
+			}
+			socket.emit("trade_player", {firstPlayer: secondPlayer, secondPlayer: firstPlayer, 
+										 firstPlayerResources: secondPlayerResources, 
+										 secondPlayerResources: firstPlayerResources});
+			
+			$('#receive-trade-modal').modal('hide');
+			$('#receive-trade-form').find("input[type=text], textarea").val("0");
+			messageCopy = null;
+		});
 	
 	//This player variable will keep track of all of the players data on the client side
 	var player = new create_player();
@@ -96,14 +144,11 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	$('#container').css('display', 'none');
 
     // Initialize socket.io.
-    // document.location.host returns the host of the current page.
     var socket = io.connect('http://' + document.location.host);
 
-    // If a welcome message is received, it means the chat room is available.
-    // The Log In button will be then enabled.
     socket.on(
       'welcome',
-      function(message) {
+      function() {
         $('#join-game-button').attr('disabled', false);
       });
 
@@ -113,16 +158,11 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
         $( "div" ).remove(".login-section");
         $( "div" ).remove("#background-image");
         $('#container').css('display', 'block');
-		
 		player.playerId = message.playerId;
 		player.playerName = message.playersName;
 		player.playerColor = message.playersColor;
-		console.log(player.playerId);
-		console.log(player);
       });
 
-    // If a login_failed message is received, stay in the login section but
-    // display an error message.
     socket.on(
       'login_failed',
       function() {
@@ -142,9 +182,13 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		function(message) { 
 			if(!isDiceOn)
 			{
-				player = message.pArray[player.playerId];
-				console.log(player);
-
+			    player.totalResources = message.pArray[player.playerId].totalResources;
+			    player.numCotton = message.pArray[player.playerId].numCotton;
+			    player.numLimestone = message.pArray[player.playerId].numLimestone; 
+			    player.numOil = message.pArray[player.playerId].numOil;
+			    player.numCattle = message.pArray[player.playerId].numCattle;
+			    player.numClay = message.pArray[player.playerId].numClay;
+				
 				isDiceOn = true;
 				menuDie1.start();
 				menuDie2.start();
@@ -155,86 +199,82 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 				var d2 = parseInt(message.dArray[1]);
 				
 				var totValue = d1 + d2;
-
-				setTimeout( function() { console.log("You rolled a " + totValue); }, 1500);
 			}	 
 		}
 	);
+	
+	// If the buy_outpost message is received...
+	socket.on(
+		'buy_outpost',
+		function(message) {
+			for(var i = 0; i < arraySettlements.length; i++)
+			{
+				arraySettlements[i].listening(false);
+				if(arraySettlements[i].getId() == message.OPID)
+				{
+					arraySettlements[i].shadowEnabled(true);
+					console.log(arraySettlements[i]);
+				}
+			}
 
+	});
+	
 	socket.on(
       'trade_player',
-      function(message) {
+      function tradeTerms(message) {
 			if(player.playerId == message.secondPlayer) {
-				
-				var firstPlayer = message.firstPlayer;
-				var secondPlayer = message.secondPlayer;
-				var firstPlayerResources = message.firstPlayerResources;
-				var secondPlayerResources = message.secondPlayerResources;
+				messageCopy = message;
 
+				$('#receive-trade-form :input:first').val(message.firstPlayer);
 				var j = 0;
 				$('#receive-trade-form :input').each(function(i) {
-					if(i % 2 === 0) {
-						$(this).val(firstPlayerResources[j]);
+					if(i % 2 === 0 && i != 0) {
+						$(this).val(message.secondPlayerResources[j]);
 						j = j + 1;
 					}
 				});
-
 				j = 0;
 				$('#receive-trade-form :input').each(function(i) {
-					if(i % 2 !== 0) {
-						$(this).val(secondPlayerResources[j]);
+					if(i % 2 !== 0 && i != 0) {
+						$(this).val(message.firstPlayerResources[j]);
 						j = j + 1;
 					}
 				});
-
-				$('#receive-trade-modal').modal('show');
-				
-				$('#accept-trade-button').click(function() {
-				
-					socket.emit("trade_accepted", message);
-					$('#receive-trade-modal').modal('hide');
-					$('#receive-trade-form').find("input[type=text], textarea").val("0");
-				});
-				$('#reject-trade-button').click(function() {
-				
-					socket.emit("trade_rejected", {firstPlayer: firstPlayer});
-					$('#receive-trade-modal').modal('hide');
-					$('#receive-trade-form').find("input[type=text], textarea").val("0");
-				});
-				$('#counter-trade-button').click(function() {
-				
-			    	var $inputs = $('#receive-trade-form :input');
-
-				    var tradeTerms = [];
-				    $inputs.each(function(i) {
-				        tradeTerms[i] = $(this).val();
-				    });
-			
-				    var firstPlayerResources = [];
-				    var secondPlayerResources = [];
-					for(var i = 0; i < tradeTerms.length; i++) {
-						if(i % 2 === 0) {
-							firstPlayerResources.push(tradeTerms[i]);
-						}
-						else {
-							secondPlayerResources.push(tradeTerms[i]);
-						}
-					}
-					console.log(firstPlayerResources);
-					console.log(secondPlayerResources);
-					socket.emit("trade_player", {firstPlayer: secondPlayer, secondPlayer: firstPlayer, 
-										 		 firstPlayerResources: secondPlayerResources, 
-										         secondPlayerResources: firstPlayerResources});
-					
-					$('#receive-trade-modal').modal('hide');
-					//$('#receive-trade-form').find("input[type=text], textarea").val("0");
-				});
-				
+				$('#receive-trade-modal').modal('show');		
 			}
       });
 
-    // When the Log In button is clicked, the provided function will be called,
-    // which sends a login message to the server.
+		socket.on(
+      'trade_accepted',
+      function tradeTerms(message) {
+      		console.log(message);
+			if(player.playerId == message.firstPlayer || player.playerId == message.secondPlayer) {
+				player.totalResources = message.pArray[player.playerId].totalResources;
+				player.numCotton = message.pArray[player.playerId].numCotton;
+				player.numLimestone = message.pArray[player.playerId].numLimestone;
+				player.numOil = message.pArray[player.playerId].numOil;
+				player.numCattle = message.pArray[player.playerId].numCattle;
+				player.numClay = message.pArray[player.playerId].numClay;
+
+				resourceCottonText.setText((player.numCotton).toString());
+				resourceLimestoneText.setText((player.numLimestone).toString());
+				resourceOilText.setText((player.numOil).toString());
+				resourceCattleText.setText((player.numCattle).toString());
+				resourceRedClayText.setText((player.numClay).toString());
+				menuLayer.draw();
+
+				$('#accept-trade-modal').modal('show');		
+			}
+      });
+
+	  socket.on(
+      'trade_rejected',
+      function tradeTerms(message) {
+			if(player.playerId == message.firstPlayer || player.playerId == message.secondPlayer) {
+				$('#reject-trade-modal').modal('show');		
+			}
+      });
+
     $('#join-game-button').click(function() {
       var name = $('#player-name').val();
       if (name) {
@@ -247,10 +287,6 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
       $('#player-name').val('');
     });
 
-
-
-
-//
 	function checkTurn(bool)
 	{
 		if(bool) {
@@ -546,13 +582,11 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	canvas.add(backgroundLayer);
 	canvas.add(boardLayer);
 	canvas.add(hexagonLayer);
-
-	//putting coordinates and rotation of each trail into arrays
-	{
-	var arrayTrails = [];
+	
+		var arrayTrails = [];
 	var arrayTrailsPos = []; //will hold coordinates for 
 	var arrayTrailsRot = [];
-	
+	{
 	arrayTrailsPos.push(findCoordHex('H0',0,0) + screenWidth * .00469);
 	arrayTrailsPos.push(findCoordHex('H0',0,1) - screenWidth * .00573);
 	arrayTrailsRot.push(33);
@@ -569,17 +603,271 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	arrayTrailsPos.push(findCoordHex('H0',4,1) + trailWidth);
 	arrayTrailsRot.push(270);
 	
-	arrayTrailsPos.push(findCoordHex('H0',3,0) + screenWidth * .01458);
-	arrayTrailsPos.push(findCoordHex('H0',3,1) + screenWidth * .00989);
+	arrayTrailsPos.push(findCoordHex('H1',0,0) + screenWidth * .00469);
+	arrayTrailsPos.push(findCoordHex('H1',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H1',5,0) - screenWidth * .00885);
+	arrayTrailsPos.push(findCoordHex('H1',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H2',0,0) + screenWidth * .00469);
+	arrayTrailsPos.push(findCoordHex('H2',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H2',5,0) - screenWidth * .00885);
+	arrayTrailsPos.push(findCoordHex('H2',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H3',0,0) + screenWidth * .00469);
+	arrayTrailsPos.push(findCoordHex('H3',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H3',5,0) - screenWidth * .00885);
+	arrayTrailsPos.push(findCoordHex('H3',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H0',3,0) + screenWidth * .01308);
+	arrayTrailsPos.push(findCoordHex('H0',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+
+	arrayTrailsPos.push(findCoordHex('H1',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H1',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H1',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H1',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H3',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H3',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H3',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H3',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+
+	arrayTrailsPos.push(findCoordHex('H1',2,0) + screenWidth * .00885);//down right
+	arrayTrailsPos.push(findCoordHex('H1',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H1',3,0) + screenWidth * .01308);//top right
+	arrayTrailsPos.push(findCoordHex('H1',3,1) + screenWidth * .00889);
 	arrayTrailsRot.push(213);
 	
-	arrayTrailsPos.push(findCoordHex('H0',2,0) + screenWidth * .00885);
-	arrayTrailsPos.push(findCoordHex('H0',2,1) - screenWidth * .00573);
+	arrayTrailsPos.push(findCoordHex('H2',2,0) + screenWidth * .00885);//down right
+	arrayTrailsPos.push(findCoordHex('H2',2,1) - screenWidth * .00573);
 	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H2',3,0) + screenWidth * .01308);//top right
+	arrayTrailsPos.push(findCoordHex('H2',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H3',2,0) + screenWidth * .00885);//down right
+	arrayTrailsPos.push(findCoordHex('H3',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H3',3,0) + screenWidth * .01308);//top right
+	arrayTrailsPos.push(findCoordHex('H3',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H6',5,0) - screenWidth * .00885);//left down
+	arrayTrailsPos.push(findCoordHex('H6',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H4',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H4',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H4',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H4',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H6',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H6',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H6',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H6',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H4',2,0) + screenWidth * .00885);//up right
+	arrayTrailsPos.push(findCoordHex('H4',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+
+	arrayTrailsPos.push(findCoordHex('H7',0,0) + screenWidth * .00469);//left up
+	arrayTrailsPos.push(findCoordHex('H7',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H7',5,0) - screenWidth * .00885);//left down
+	arrayTrailsPos.push(findCoordHex('H7',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H8',0,0) + screenWidth * .00469);//left up
+	arrayTrailsPos.push(findCoordHex('H8',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H8',5,0) - screenWidth * .00885);//left down
+	arrayTrailsPos.push(findCoordHex('H8',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H9',0,0) + screenWidth * .00469);//left up
+	arrayTrailsPos.push(findCoordHex('H9',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H9',5,0) - screenWidth * .00885);//left down
+	arrayTrailsPos.push(findCoordHex('H9',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H10',0,0) + screenWidth * .00469);//left up
+	arrayTrailsPos.push(findCoordHex('H10',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H10',5,0) - screenWidth * .00885);//left down
+	arrayTrailsPos.push(findCoordHex('H10',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H7',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H7',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H7',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H7',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	
+	arrayTrailsPos.push(findCoordHex('H9',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H9',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H9',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H9',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H10',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H10',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H7',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H7',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+
+	arrayTrailsPos.push(findCoordHex('H7',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H7',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+
+	arrayTrailsPos.push(findCoordHex('H8',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H8',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+		
+	arrayTrailsPos.push(findCoordHex('H8',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H8',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+
+	
+	arrayTrailsPos.push(findCoordHex('H9',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H9',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+		
+	arrayTrailsPos.push(findCoordHex('H9',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H9',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+
+	arrayTrailsPos.push(findCoordHex('H10',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H10',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+		
+	arrayTrailsPos.push(findCoordHex('H10',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H10',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H11',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H11',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H11',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H11',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H13',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H13',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H13',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H13',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H14',0,0) + screenWidth * .00469);//left up
+	arrayTrailsPos.push(findCoordHex('H14',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H11',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H11',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H11',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H11',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H12',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H12',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H12',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H12',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H13',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H13',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H13',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H13',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H14',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H14',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H14',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H14',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H16',0,0) + screenWidth * .01459);//up
+	arrayTrailsPos.push(findCoordHex('H16',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H16',4,0) + screenWidth * .01459);//down
+	arrayTrailsPos.push(findCoordHex('H16',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H14',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H14',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+
+	arrayTrailsPos.push(findCoordHex('H14',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H14',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+
+	arrayTrailsPos.push(findCoordHex('H15',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H15',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H15',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H15',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H16',2,0) + screenWidth * .00885);//top right
+	arrayTrailsPos.push(findCoordHex('H16',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	
+	arrayTrailsPos.push(findCoordHex('H16',3,0) + screenWidth * .01308);//down right
+	arrayTrailsPos.push(findCoordHex('H16',3,1) + screenWidth * .00889);
+	arrayTrailsRot.push(213);
 	}
 	
 	//make trails and add them to pieceLayer and then stage
-	for(var i=0; i<=5; i++) //
+	for(var i=0; i<69; i++) //
 	{
 		var trail = new Kinetic.Rect({
 			x: arrayTrailsPos[i*2],
@@ -594,7 +882,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		pieceLayer.add(arrayTrails[i]);
 		console.log(screenWidth);
 	}
-	
+
 	//put coordinates for settlements into array
 	{
 	var arraySettlementsPos = [];
@@ -739,13 +1027,23 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			image: settlementImg,
 			width: settlementWidth,
 			height: settlementHeight,
-			id: 'S' + i
+			id: 'S' + i,
+			shadowEnabled: false
 		});
+
 		arraySettlements.push(settlement);
-		pieceLayer.add(arraySettlements[i])
+		pieceLayer.add(arraySettlements[i]);
+
+		arraySettlements[i].on('mouseover', function () {
+			document.body.style.cursor = 'pointer';
+		});
+		arraySettlements[i].on('mouseout', function () {
+			document.body.style.cursor = 'default';
+		});
+
+		arraySettlements[i].listening(false);
 	}
 	canvas.add(pieceLayer);
-	
 	
 	/* menu setup */
 	//menu sizing variables
@@ -764,32 +1062,32 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	});
 	menuTrade.on('click', function(){ 
 		$('#send-trade-modal').modal('show');
+	});
+	$('#send-trade-button').click(function() {
+		$('#send-trade-modal').modal('hide');
+		var $inputs = $('#send-trade-form :input');
 
-		$('#send-trade-button').click(function() {
-			
-		    var $inputs = $('#send-trade-form :input');
-
-		    var tradeTerms = [];
-		    $inputs.each(function(i) {
-		        tradeTerms[i] = $(this).val();
-		    });
-			
-		    var firstPlayerResources = [];
-		    var secondPlayerResources = [];
-			for(var i = 1; i < tradeTerms.length; i++) {
-				if(i % 2 === 0) {
-					firstPlayerResources.push(tradeTerms[i]);
-				}
-				else {
-					secondPlayerResources.push(tradeTerms[i]);
-				}
-			}
-			socket.emit("trade_player", {firstPlayer: player.playerId, secondPlayer: tradeTerms[0], 
-										 firstPlayerResources: firstPlayerResources, 
-										 secondPlayerResources: secondPlayerResources});
-
-			//$('#send-trade-form').find("input[type=text], textarea").val("0");
+		var tradeTerms = [];
+		$inputs.each(function(i) {
+			tradeTerms[i] = $(this).val();
 		});
+		
+		var firstPlayerResources = [];
+		var secondPlayerResources = [];
+		for(var i = 1; i < tradeTerms.length; i++) {
+			if(i % 2 === 0) {
+				firstPlayerResources.push(tradeTerms[i]);
+			}
+			else {
+				secondPlayerResources.push(tradeTerms[i]);
+			}
+		}
+		socket.emit("trade_player", {firstPlayer: player.playerId, secondPlayer: tradeTerms[0], 
+									 firstPlayerResources: firstPlayerResources, 
+									 secondPlayerResources: secondPlayerResources});
+
+		$('#send-trade-form').find("input[type=text], textarea").val("0");
+		console.log('hello');
 	});
 	var menuDuel = new Kinetic.Image({
 		x: menuPosStartX + menuButSpacing + menuButWidth,
@@ -805,9 +1103,49 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		width: menuButWidth,
 		height: menuButHeight
 	});
-		menuBuy.on('click', function(){
-		$(location).attr('href', '#buy_modal')
+	menuBuy.on('click', function() {
+		$('#buy-modal').modal('show');
 	});
+	
+	//When the Buy Outpost button in the buyModal has been clicked...
+	$('#buy-outpost-button').click(function() {
+	//console.log('You tried to buy an outpost sucker!!!!');
+
+	//TODO Check for needed resources
+
+	var tempOpId;
+
+	for(var i = 0; i < arraySettlements.length; i++)
+	{
+		//tempOpId = arraySettlements[i].getId();
+
+		arraySettlements[i].on('click' || 'tap', function(evt) {
+			var shape = evt.target;
+			socket.emit('buy_outpost', { pID: player.playerId, opID: shape.getId() });
+			(player.victoryPoints)++;
+			(player.numOil)--;
+			(player.numClay)--;
+			(player.numCotton)--;
+			(player.numCattle)--;
+		});
+
+		if(!arraySettlements[i].shadowEnabled())
+		{
+			arraySettlements[i].listening(true);	
+		}
+	}
+	pieceLayer.drawHit();
+	//socket.emit('buy_outpost', { pID: id });
+	});
+	
+	//When mouse is over the button the cursor will be changed
+	menuBuy.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuBuy.on('mouseout', function () {
+		document.body.style.cursor = 'default';
+	});
+	
 	//make dice and add to board
 	var menuCards = new Kinetic.Rect({
 		x: menuPosStartX,
@@ -914,7 +1252,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			menuDie2.start();
 			setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, Math.random() * (1800 - 1500) + 1500);
 		}	
-		//socket.emit('resource_production');
+		socket.emit('resource_production');
 		//console.log("Sent resource_production from client");
 	});
 	//When mouse is over the button the cursor will be changed
@@ -1039,9 +1377,5 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	menuLayer.add(resourceOilText);
 	
 	canvas.add(menuLayer);
-	
-	
-	
-	//console.log(canvas.toJSON());
 	
 });

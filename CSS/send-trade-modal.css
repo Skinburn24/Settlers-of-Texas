@@ -18,6 +18,12 @@
 	width: 30%;
 }
 
+#send-trade-modal #player label
+{
+	margin-left: -30%;
+	width: 160%;
+}
+
 #send-trade-modal #player .input-group
 {
 	width: 130%;

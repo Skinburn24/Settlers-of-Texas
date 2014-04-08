@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	
     <!-- Bootstrap -->
-	<script defer="defer" src="/js/jquery.fullscreenBackground.js"></script>'
+	<script defer="defer" src="/js/jquery.fullscreenBackground.js"></script>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
 	<!-- Bootstrap Helper -->
 	<link href="/css/bootstrap-formhelpers.min.css" rel="stylesheet">
@@ -14,7 +14,7 @@
 	<link href="/css/join-game.css" rel="stylesheet">
 	<link href="/css/send-trade-modal.css" rel="stylesheet">
 	<link href="/css/receive-trade-modal.css" rel="stylesheet">
-	<link href="/css/buy_modal.css" rel="stylesheet">
+	<link href="/css/buy-modal.css" rel="stylesheet">
 
   </head>
 	<body>
@@ -26,6 +26,7 @@
 		  </form>
 		</div>
 		
+		<!-- KineticJS Container -->
 		<div id="container"></div>
 
 		<!-- Send Trade Modal -->
@@ -39,8 +40,8 @@
 			  <div class="modal-body">
 				<form role="form" id="send-trade-form">
 					<div id="player">
-						<label for="player-receiving">Player</label>
-						<input type="text" class="form-control bfh-number" id="player-receiving" data-min="0" data-max="3" data-wrap="true" value="1">
+						<label for="player-receiving">Player Receiving Trade</label>
+						<input type="text" class="form-control bfh-number" id="player-receiving" data-min="0" data-max="3" data-wrap="true" value="0">
 					</div>
 					<div class="row">
 						<div class="col-md-5">
@@ -121,8 +122,8 @@
 			  <div class="modal-body">
 				<form role="form" id="receive-trade-form">
 					<div id="player">
-						<label for="player-sending">Player</label>
-						<output id="player-receiving"></output>
+						<label for="player-sending">Player Sending Trade</label>
+						<input type="text" class="form-control bfh-number" id="player-sending" data-min="0" data-max="0" data-wrap="true" value="0">
 					</div>
 					<div class="row">
 						<div class="col-md-5">
@@ -182,9 +183,9 @@
 							<input type="text" class="form-control bfh-number" id="send-redclay" data-min="0" value="0">
 						</div>
 					</div>
-				  <button type="button" id="accept-trade-button" class="btn btn-primary">Accept</button>
-				  <button type="button" id="reject-trade-button" class="btn btn-primary">Reject</button>
-				  <button type="button" id="counter-trade-button" class="btn btn-primary">Counter</button>
+					  <button type="button" id="accept-trade-button" class="btn btn-primary">Accept</button>
+					  <button type="button" id="reject-trade-button" class="btn btn-primary">Reject</button>
+					  <button type="button" id="counter-trade-button" class="btn btn-primary">Counter</button> 
 				</form>
 			  </div>
 			  <div class="modal-footer">
@@ -194,7 +195,44 @@
 		</div>
 		</div>
 
-		<div class="modal fade" id="buyModal" tabindex="-1" role="dialog" aria-labelledby="buyModalLabel" aria-hidden="true">
+		<!-- Accept Trade Modal -->
+		<div class="modal fade" id="accept-trade-modal" tabindex="-1" role="dialog" aria-labelledby="accept-trade-modal-label" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="accept-trade-modal-label"><b>Player Trade</b></h4>
+			  </div>
+			  <div class="modal-body">
+			  	<p>Trade Accepted</p>
+			  </div>
+			  <div class="modal-footer">
+			  </div>
+			</div>
+		  </div>
+		</div>
+		</div>
+
+		<!-- Reject Trade Modal -->
+		<div class="modal fade" id="reject-trade-modal" tabindex="-1" role="dialog" aria-labelledby="reject-trade-modal-label" aria-hidden="true">
+		  <div class="modal-dialog">
+			<div class="modal-content">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="reject-trade-modal-label"><b>Player Trade</b></h4>
+			  </div>
+			  <div class="modal-body">
+			  	<p>Trade Rejected</p>
+			  </div>
+			  <div class="modal-footer">
+			  </div>
+			</div>
+		  </div>
+		</div>
+		</div>
+
+		<!-- Buy Modal -->
+		<div class="modal fade" id="buy-modal" tabindex="-1" role="dialog" aria-labelledby="buy-modal-label" aria-hidden="true">
 		  <div class="modal-dialog">
 			<div class="modal-content">
 			  <div class="modal-header">
@@ -202,14 +240,13 @@
 				<h4 class="modal-title" id="buyModalLabel"><b>Buy Menu</b></h4>
 			  </div>
 			  <div class="modal-body">
-				<form role="form" id="buyForm">
+				<form role="form" id="buy-form">
 					<div class="row">
-							<button type="button" id="buyOutpostButton" data-dismiss="modal" class="btn btn-primary">Buy Outpost</button>
+							<button type="button" id="buy-outpost-button" data-dismiss="modal" class="btn btn-primary">Buy Outpost</button>
 					</div>
 					<div class="row">
-							<label> Requires: A bunch of crap</label>
+							<label> Requires: 1 Red Clay, 1 Oil, 1 Cotton, 1 Cattle</label>
 					</div>									
-				  
 				</form>
 			  </div>
 			  <div class="modal-footer">

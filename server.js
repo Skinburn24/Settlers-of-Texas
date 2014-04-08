@@ -44,7 +44,9 @@ function hex(rType, hID)
 	this.playerResourceCount = [0, 0, 0, 0];
 }
 
-//Create array of hex objects
+
+
+//Function to create array of hex objects with chit values
 function createHexArray()
 {
 	var seenDesertFlag = false;
@@ -68,6 +70,7 @@ function createHexArray()
 	}
 }
 
+//Create array of hex objects with chit values
 createHexArray();
 
 //**************************************************************************************************
@@ -86,11 +89,11 @@ function player(pName, pColor, devoArray, opArray, tArray)
    this.isTurn = false;
    this.victoryPoints = 0;
    this.totalResources = 0;
-   this.numCotton = 0;
-   this.numLimestone = 0; 
-   this.numOil = 0;
-   this.numCattle = 0;
-   this.numClay = 0;
+   this.numCotton = 2;
+   this.numLimestone = 2; 
+   this.numOil = 2;
+   this.numCattle = 2;
+   this.numClay = 2;
    this.trailsOwned = tArray;
    this.numRangersPlayed = 0;
    this.longestRoad = 0;
@@ -135,6 +138,8 @@ function getNextPlayer()
 //Given a hex object, this function will allocate the correct number of resources to each player
 function allocateResources(currentHex)
 {
+	//console.log("In allocate resources!");
+	//console.log(currentHex);
 	// 0 = desert, 1 = cotton, 2 = limestone, 3 = oil, 4 = red clay, 5 = cattle
 	switch(currentHex.resourceType) {
 		case 1: 
@@ -173,12 +178,45 @@ function allocateResources(currentHex)
 //Produce resources
 function produceResources(totalDiceValue)
 {
+	console.log(hexArray);
 	var foundFlag = 0;
 	for(var i = 0; (i < hexArray.length) && (foundFlag != 2); i++)
 	{
-		if(hexArray[i].chitValue = totalDiceValue)
+		if(hexArray[i].chitValue == totalDiceValue)
 		{
-			allocateResources(hexArray[i]);
+			console.log(hexArray[i]);
+			switch(hexArray[i].resourceType) {
+				case 1: 
+					for(var j = 0; j < playerArray.length; j++)
+					{
+						playerArray[j].numCotton += hexArray[i].playerResourceCount[j];
+					}
+					break;
+				case 2:
+					for(var j = 0; j < playerArray.length; j++)
+					{
+						playerArray[j].numLimestone += hexArray[i].playerResourceCount[j];
+					}
+					break;
+				case 3:
+					for(var j = 0; j < playerArray.length; j++)
+					{
+						playerArray[j].numOil += hexArray[i].playerResourceCount[j];
+					}
+					break;
+				case 4:
+					for(var j = 0; j < playerArray.length; j++)
+					{
+						playerArray[j].numClay += hexArray[i].playerResourceCount[j];
+					}
+					break;
+				case 5:
+					for(var j = 0; j < playerArray.length; j++)
+					{
+						playerArray[j].numCattle += hexArray[i].playerResourceCount[j];
+					}
+					break;
+			}
 			foundFlag++;
 		}
 	}
@@ -194,7 +232,30 @@ function updateTotalResources()
 
 }
 
+function tradeResources(firstPlayer, secondPlayer, firstPlayerResources, secondPlayerResources)
+{
+   playerArray[firstPlayer].numOil -= parseInt(secondPlayerResources[0]);
+   playerArray[firstPlayer].numOil += parseInt(firstPlayerResources[0]);
+   playerArray[firstPlayer].numCattle -= parseInt(secondPlayerResources[1]);
+   playerArray[firstPlayer].numCattle += parseInt(firstPlayerResources[1]);
+   playerArray[firstPlayer].numLimestone -= parseInt(secondPlayerResources[2]);
+   playerArray[firstPlayer].numLimestone += parseInt(firstPlayerResources[2]);
+   playerArray[firstPlayer].numCotton -= parseInt(secondPlayerResources[3]);
+   playerArray[firstPlayer].numCotton += parseInt(firstPlayerResources[3]);
+   playerArray[firstPlayer].numClay -= parseInt(secondPlayerResources[4]);
+   playerArray[firstPlayer].numClay += parseInt(firstPlayerResources[4]);
 
+   playerArray[secondPlayer].numOil -= parseInt(firstPlayerResources[0]);
+   playerArray[secondPlayer].numOil += parseInt(secondPlayerResources[0]);
+   playerArray[secondPlayer].numCattle -= parseInt(firstPlayerResources[1]);
+   playerArray[secondPlayer].numCattle += parseInt(secondPlayerResources[1]);
+   playerArray[secondPlayer].numLimestone -= parseInt(firstPlayerResources[2]);
+   playerArray[secondPlayer].numLimestone += parseInt(secondPlayerResources[2]);
+   playerArray[secondPlayer].numCotton -= parseInt(firstPlayerResources[3]);
+   playerArray[secondPlayer].numCotton += parseInt(secondPlayerResources[3]);
+   playerArray[secondPlayer].numClay -= parseInt(firstPlayerResources[4]);
+   playerArray[secondPlayer].numClay += parseInt(secondPlayerResources[4]);
+}
 
 //**************************************************************************************************
 //**************************************************************************************************
@@ -288,7 +349,7 @@ function trial(tID, oplayer)
 	this.owningPlayer = oplayer;
 }
 
-function buyOutpost(currPlayer)
+function buyOutpost(currPlayer, outpostIdNum)
 {
 		//Outpost = new outpost(outpostIDs, oplayer);
 		//outpostIDs++;
@@ -300,8 +361,216 @@ function buyOutpost(currPlayer)
 		(playerArray[currPlayer].numCotton)--;
 		(playerArray[currPlayer].numCattle)--;
 
-
-		//TODO add giant switch case to figure out which hexes need to be updated.	
+		switch(outpostIdNum) {
+					case 'S0':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						break;
+					case 'S1':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						break;
+					case 'S2':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						break;
+					case 'S3':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						break;
+					case 'S4':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						break;
+					case 'S5':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						hexArray[2].playerResourceCount[currPlayer]++;
+						break;
+					case 'S6':
+						hexArray[2].playerResourceCount[currPlayer]++;
+						break;
+					case 'S7':
+						hexArray[2].playerResourceCount[currPlayer]++;
+						hexArray[3].playerResourceCount[currPlayer]++;
+						break;
+					case 'S8':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						hexArray[3].playerResourceCount[currPlayer]++;
+						break;
+					case 'S9':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						hexArray[3].playerResourceCount[currPlayer]++;
+						break;
+					case 'S10':
+						hexArray[0].playerResourceCount[currPlayer]++;
+						break;
+					case 'S11':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						break;
+					case 'S12':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						hexArray[4].playerResourceCount[currPlayer]++;
+						break;
+					case 'S13':
+						hexArray[1].playerResourceCount[currPlayer]++;
+						hexArray[2].playerResourceCount[currPlayer]++;
+						hexArray[4].playerResourceCount[currPlayer]++;
+						break;
+					case 'S14':
+						hexArray[2].playerResourceCount[currPlayer]++;
+						hexArray[4].playerResourceCount[currPlayer]++;
+						hexArray[5].playerResourceCount[currPlayer]++;
+						break;
+					case 'S15':
+						hexArray[2].playerResourceCount[currPlayer]++;
+						hexArray[3].playerResourceCount[currPlayer]++;
+						hexArray[5].playerResourceCount[currPlayer]++;
+						break;
+					case 'S16':
+						hexArray[3].playerResourceCount[currPlayer]++;
+						hexArray[5].playerResourceCount[currPlayer]++;
+						hexArray[6].playerResourceCount[currPlayer]++;
+						break;
+					case 'S17':
+						hexArray[3].playerResourceCount[currPlayer]++;
+						hexArray[6].playerResourceCount[currPlayer]++;
+						break;
+					case 'S18':
+						hexArray[6].playerResourceCount[currPlayer]++;
+						break;
+					case 'S19':
+						hexArray[4].playerResourceCount[currPlayer]++;
+						break;
+					case 'S20':
+						hexArray[4].playerResourceCount[currPlayer]++;
+						hexArray[7].playerResourceCount[currPlayer]++;
+						break;
+					case 'S21':
+						hexArray[4].playerResourceCount[currPlayer]++;
+						hexArray[5].playerResourceCount[currPlayer]++;
+						hexArray[7].playerResourceCount[currPlayer]++;
+						break;
+					case 'S22':
+						hexArray[5].playerResourceCount[currPlayer]++;
+						hexArray[7].playerResourceCount[currPlayer]++;
+						hexArray[8].playerResourceCount[currPlayer]++;
+						break;
+					case 'S23':
+						hexArray[5].playerResourceCount[currPlayer]++;
+						hexArray[8].playerResourceCount[currPlayer]++;
+						hexArray[6].playerResourceCount[currPlayer]++;
+						break;
+					case 'S24':
+						hexArray[6].playerResourceCount[currPlayer]++;
+						hexArray[8].playerResourceCount[currPlayer]++;
+						hexArray[9].playerResourceCount[currPlayer]++;
+						break;
+					case 'S25':
+						hexArray[6].playerResourceCount[currPlayer]++;
+						hexArray[9].playerResourceCount[currPlayer]++;
+						break;
+					case 'S26':
+						hexArray[9].playerResourceCount[currPlayer]++;
+						hexArray[10].playerResourceCount[currPlayer]++;
+						break;
+					case 'S27':
+						hexArray[10].playerResourceCount[currPlayer]++;
+						break;
+					case 'S28':
+						hexArray[10].playerResourceCount[currPlayer]++;
+						break;
+					case 'S29':
+						hexArray[7].playerResourceCount[currPlayer]++;
+						break;
+					case 'S30':
+						hexArray[7].playerResourceCount[currPlayer]++;
+						hexArray[11].playerResourceCount[currPlayer]++;
+						break;
+					case 'S31':
+						hexArray[7].playerResourceCount[currPlayer]++;
+						hexArray[8].playerResourceCount[currPlayer]++;
+						hexArray[11].playerResourceCount[currPlayer]++;
+						break;
+					case 'S32':
+						hexArray[8].playerResourceCount[currPlayer]++;
+						hexArray[11].playerResourceCount[currPlayer]++;
+						hexArray[12].playerResourceCount[currPlayer]++;
+						break;
+					case 'S33':
+						hexArray[8].playerResourceCount[currPlayer]++;
+						hexArray[9].playerResourceCount[currPlayer]++;
+						hexArray[12].playerResourceCount[currPlayer]++;
+						break;
+					case 'S34':
+						hexArray[9].playerResourceCount[currPlayer]++;
+						hexArray[12].playerResourceCount[currPlayer]++;
+						hexArray[13].playerResourceCount[currPlayer]++;
+						break;
+					case 'S35':
+						hexArray[9].playerResourceCount[currPlayer]++;
+						hexArray[10].playerResourceCount[currPlayer]++;
+						hexArray[13].playerResourceCount[currPlayer]++;
+						break;
+					case 'S36':
+						hexArray[10].playerResourceCount[currPlayer]++;
+						hexArray[13].playerResourceCount[currPlayer]++;
+						break;
+					case 'S37':
+						hexArray[10].playerResourceCount[currPlayer]++;
+						break;
+					case 'S38':
+						hexArray[14].playerResourceCount[currPlayer]++;
+						break;
+					case 'S39':
+						hexArray[14].playerResourceCount[currPlayer]++;
+						hexArray[11].playerResourceCount[currPlayer]++;
+						break;
+					case 'S40':
+						hexArray[11].playerResourceCount[currPlayer]++;
+						hexArray[14].playerResourceCount[currPlayer]++;
+						hexArray[15].playerResourceCount[currPlayer]++;
+						break;
+					case 'S41':
+						hexArray[11].playerResourceCount[currPlayer]++;
+						hexArray[15].playerResourceCount[currPlayer]++;
+						hexArray[12].playerResourceCount[currPlayer]++;
+						break;
+					case 'S42':
+						hexArray[12].playerResourceCount[currPlayer]++;
+						hexArray[15].playerResourceCount[currPlayer]++;
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+					case 'S43':
+						hexArray[12].playerResourceCount[currPlayer]++;
+						hexArray[13].playerResourceCount[currPlayer]++;
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+					case 'S44':
+						hexArray[13].playerResourceCount[currPlayer]++;
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+					case 'S45':
+						hexArray[13].playerResourceCount[currPlayer]++;
+						break;
+					case 'S46':
+						hexArray[14].playerResourceCount[currPlayer]++;
+						break;
+					case 'S47':
+						hexArray[14].playerResourceCount[currPlayer]++;
+						break;
+					case 'S48':
+						hexArray[14].playerResourceCount[currPlayer]++;
+						hexArray[15].playerResourceCount[currPlayer]++;
+						break;
+					case 'S49':
+						hexArray[15].playerResourceCount[currPlayer]++;
+						break;
+					case 'S50':
+						hexArray[15].playerResourceCount[currPlayer]++;
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+					case 'S51':
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+					case 'S52':
+						hexArray[16].playerResourceCount[currPlayer]++;
+						break;
+		}	
 }
 
 function buyTown(oplayer)
@@ -358,8 +627,12 @@ var io = require('socket.io').listen(app);
 // Allows access to local file system.
 var fs = require('fs');
 
+var playerLimit = 2;
+var playerSockets = [];
+var gameStarted = false;
+
 // Listen on a high port.
-app.listen(10037);
+app.listen(10040);
 
 // Handles HTTP requests.
 function handler(request, response) {
@@ -371,11 +644,9 @@ function handler(request, response) {
 io.sockets.on(
   'connection',
   function(client) {
-    // Send a welcome message first.
-    client.emit('welcome', 'Welcome to my chat room!');
+  	playerSockets.push(client);
+    client.emit('welcome', { clientHexArray: hexResourceArray, clientChitArray: chitArray });
 
-    // Listen to an event called 'login'. The client should emit this event when
-    // it wants to log in to the chat room.
     client.on(
       'login',
       function(message) {
@@ -394,35 +665,52 @@ io.sockets.on(
 								nextColor = "Yellow";
 								break;
 							case 3:
-								nextColor = "White";
+								nextColor = "Green";
 								break;
 			}
 				
-			if(playerArray.length < 2) {
-			  
+			if(playerArray.length < playerLimit) {
 			  //Create new players
-			  Player = new player(playerArray.length-1 ,message.user_name, nextColor, devoCardArray, outpostArray, trailArray);
+			  Player = new player(message.user_name, nextColor, devoCardArray, outpostArray, trailArray);
 			  playerArray.push(Player);
 			  
 			  client.emit('login_ok', {playerId: playerArray.length-1, playersName: message.user_name, playersColor: nextColor});
 			}
 			else{
 				//Player limit reached
-				client.emit('login_failed');
+				client.emit('login_failed', 'Player Limit Reached');
 			}
-			
-			//Start game: set isTurn to true for first player
-			if(playerArray.length == 2) {
+			if(playerArray.length == playerLimit && !gameStarted) {
+				gameStarted = true;
 				playerArray[playersTurn].isTurn = true
 				client.broadcast.emit('end_turn', {playerTurns: playerArray});
 				client.emit('end_turn', {playerTurns: playerArray});
 			}
+
         }
 		else {
 			// When something is wrong, send a login_failed message to the client.
-			client.emit('login_failed');
+			client.emit('login_failed','Sorry, Something Went Wrong');
 		}
       });
+
+	client.on(
+	    'disconnect',
+	    function() {
+	    //Only half of the desired functionaility is implemented at the moment
+	     var i = playerSockets.indexOf(client);
+	     if(gameStarted){
+		     if(playerArray[i].isTurn && playerArray.length != 1) {
+		     	getNextPlayer();
+		     	client.broadcast.emit('end_turn', {playerTurns: playerArray});
+		     }
+		     else if(playerArray[i].isTurn && playerArray.length == 1) {
+		     	console.log('Restart Server');
+		     }
+		     playerArray.splice(i, 1);
+		 }	 	     
+	     playerSockets.splice(i, 1);
+	});
 	
 	//The server receives a 'end_turn' message, changes the current player and sends an 'end_turn' message	
 	client.on(
@@ -447,13 +735,12 @@ io.sockets.on(
 			var totDiceVal = d1 + d2;
 			
 			produceResources(totDiceVal);
-			updateTotalResources();
+			updateTotalResources();			
 			
 			client.broadcast.emit('resource_production', {dArray: diceArray, pArray: playerArray});
 			client.emit('resource_production', {dArray: diceArray, pArray: playerArray});
-			//console.log("Sent resource_production from server");
 		}
-	); 
+	);  
 		
 	client.on(
 		'trade_player',
@@ -472,14 +759,23 @@ io.sockets.on(
 		'trade_accepted',
 		function(message) {
 			//Send accept message to sender
-		
+			var firstPlayer = message.firstPlayer;
+			var secondPlayer = message.secondPlayer;
+			var firstPlayerResources = message.firstPlayerResources;
+			var secondPlayerResources = message.secondPlayerResources;
+			tradeResources(firstPlayer, secondPlayer, firstPlayerResources, secondPlayerResources);
+			client.broadcast.emit('trade_accepted', {firstPlayer: firstPlayer, secondPlayer: secondPlayer,
+													   pArray: playerArray});
+			client.emit('trade_accepted', {firstPlayer: firstPlayer, secondPlayer: secondPlayer,
+													   pArray: playerArray});
 		}
 	);
 	
 	client.on(
 		'trade_rejected',
 		function(message) {
-			//Send reject message to sender
+			client.broadcast.emit('trade_rejected', message);
+			client.emit('trade_rejected', message);
 		}
 	);
 
@@ -493,11 +789,13 @@ io.sockets.on(
 			//console.log('Current player id' + currentPlayerID);
 			console.log('Outpost ID' + message.opID)
 
-			buyOutpost(currentPlayerID);
+			buyOutpost(currentPlayerID, message.opID);
 
-			client.broadcast.emit('buy_outpost', { OPID: message.opID });
-			client.emit('buy_outpost', { OPID: message.opID });
+			client.broadcast.emit('buy_outpost', { OPID: message.opID, PID: currentPlayerID });
+			client.emit('buy_outpost', { OPID: message.opID, PID: currentPlayerID });
 			//console.log("Sent resource_production from server");
+
+			//console.log(hexArray);
 		}
 	);
 	  

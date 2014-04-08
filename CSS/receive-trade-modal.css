@@ -6,10 +6,16 @@
 #receive-trade-modal #player
 {
 	text-align: center;
-	margin-top: -25px;
+	margin-top: -20px;
 	margin-bottom: 20px;
 	margin-left: 36%;
 	width: 30%;
+}
+
+#receive-trade-modal #player label
+{
+	margin-left: -30%;
+	width: 160%;
 }
 
 #receive-trade-modal #player .input-group
@@ -59,11 +65,11 @@
 	font-size: 110%;
 }
 
-#receive-trade-modal .modal-body form, button[id="receive-trade-button"]
+#receive-trade-modal .modal-body form button
 {
-	margin-top: 15px;
-	margin-left: -1%;
-	width: 102%;
+	margin-top: 2%;
+	margin-left: 2%;
+	width: 30%;
 }
 
 

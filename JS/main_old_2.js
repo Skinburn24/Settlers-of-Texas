@@ -1,11 +1,14 @@
- $(document).ready(function() {	
 
+//initialize stage of game
 var canvas = new Kinetic.Stage({
 		container: 'container',
 		width: 1,
 		height: 1
 	});
 
+//preload ALL of the images used in the game
+//input an array of javascript images
+//output an array of Kinetic.image
 function preLoadImages(arr){
     var newimages=[], loadedimages=0
     var postaction=function(){}
@@ -20,11 +23,14 @@ function preLoadImages(arr){
     for (var i=0; i<arr.length; i++){
         newimages[i]=new Image();
         newimages[i].src=arr[i];
+		//setTimeout(function() {console.log('Waiting on image')}, 50000);
         newimages[i].onload=function(){
             imageloadpost();
+			console.log('Loaded image ' + i);
         }
         newimages[i].onerror=function(){
             imageloadpost();
+			console.log('ERROR LOADING IMAGE');
         }
     }
     return { //return blank object with done() method
@@ -33,7 +39,7 @@ function preLoadImages(arr){
         }
     }
 }
-
+//check if the client is run on a mobile browser
 function detectmob() { 
 	if( navigator.userAgent.match(/Android/i)
 	 || navigator.userAgent.match(/webOS/i)
@@ -52,9 +58,36 @@ function detectmob() {
 	}
 }
 
-preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/ColorDice.png', 'img/wood.png']).done(function(arrayImages){
-	//websocket communication code
-
+//basically the 'main' function of the client
+//the first part of this function will be used to initialize the game board
+var arrayImageAddreses = [ 'IMG/Board_2.png', 	//0
+					'IMG/Desert.png', 			//1
+					'IMG/Cotton_2.png', 		//2
+					'IMG/Limestone.png', 		//3
+					'IMG/Oil.png', 				//4
+					'IMG/RedClay.png', 			//5 
+					'IMG/Cattle.png', 			//6
+					'IMG/settlement.png',		//7 
+					'IMG/ColorDice.png', 		//8
+					'IMG/rollDice.png', 		//9
+					'IMG/texaspasture2.jpg',	//10 
+					'IMG/trophyclip.png', 		//11
+					'IMG/trailclip.png', 		//12
+					'IMG/tradeclip.png',		//13
+					'IMG/redclayclip.png', 		//14
+					'IMG/posseclip.png', 		//15
+					'IMG/oilclip.png', 			//16
+					'IMG/limestoneclip.png', 	//17 
+					'IMG/hammerclip.png', 		//18
+					'IMG/duelclip.png', 		//19
+					'IMG/diceclip.png', 		//20
+					'IMG/cottonclip.png',		//21
+					'IMG/cattleclip.png', 		//22
+					'IMG/endTurn.png' 			//23
+					];
+preLoadImages(arrayImageAddreses).done(function(arrayImages){
+//websocket communication code
+	
 	//This player variable will keep track of all of the players data on the client side
 	var player = new create_player();
 	
@@ -234,29 +267,49 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 			menuRollDice.listening(false);
 			player.isTurn = false;
 		}
-	}	
-
-	var texas = arrayImages[0];
-	var hexPic = arrayImages[1];
-	var settlementimg = arrayImages[2];
-	var diePic = arrayImages[3];
-	var wood = arrayImages[4];
+	}
 	
+	//need to get this from client
+	hexResourceArray = [4, 2, 5, 1, 1, 4, 2, 3, 2, 5, 3, 0, 4, 3, 5, 1, 5];
+
+//
+	//arrayImages is the array of Kinetic.image already preloaded
+	var texas = arrayImages[0];
+	var hexDesertPic = arrayImages[1];
+	var hexCottonPic = arrayImages[2];
+	var hexLimestonePic = arrayImages[3];
+	var hexOilPic = arrayImages[4];
+	var hexRedClayPic = arrayImages[5];
+	var hexCattlePic = arrayImages[6];
+	var settlementImg = arrayImages[7];
+	var diePic = arrayImages[8];
+	var rollDicePic = arrayImages[9];
+	var texasPasture = arrayImages[10];
+	var trophyClip = arrayImages[11];
+	var trailClip = arrayImages[12];
+	var tradeClip = arrayImages[13];
+	var redClayClip = arrayImages[14];
+	var posseClip = arrayImages[15];
+	var oilClip = arrayImages[16];
+	var limestoneClip = arrayImages[17];
+	var buyClip = arrayImages[18];
+	var duelClip = arrayImages[19];
+	var diceClip = arrayImages[20];
+	var cottonClip = arrayImages[21];
+	var cattleClip = arrayImages[22];
+	var endTurnPic = arrayImages[23];
 	
 	//sizing properties
-	
-	if(detectmob())
-	{
+	//get screen size for mobile or desktop
+	if(window.outerWidth > screen.availWidth)
 		var screenWidth = window.outerWidth;
-	}
 	else
-	{
 		var screenWidth = screen.availWidth;
-		console.log('PC');
-	}
+		
 	var screenHeight = screenWidth * .65;
 	var boardWidth = screenWidth * .8;
 	var boardHeight = screenHeight * .95;
+	//sizing for hexagons and trails
 	var hexSizeMod = .12;
 	var hexWidth = boardWidth * hexSizeMod;
 	var hexHeight = boardHeight * hexSizeMod;
@@ -275,19 +328,16 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 	var settlementMoveLeft = 0 - settlementWidth/2;
 	var settlementMoveDown = settlementHeight/2;
 	var settlementMoveUp = 0 - settlementHeight/2;
+	//menu underlay vars
+	var menuUnderlayStartY1 = screenHeight - screenWidth * .1302;
+	var menuUnderlayStartY2 = menuUnderlayStartY1 * .5
 	
-	/*
-	var canvas = new Kinetic.Stage({
-		container: 'container',
-		width: screenWidth,
-		height: screenHeight
-	});
-	*/
-	
+	//set dimensions for stage
 	canvas.setWidth(screenWidth);
 	canvas.setHeight(screenHeight);
 	canvas.setId('canvas');
 	
+	//initialize layers to go on stage
 	/* Will hold background */
 	var backgroundLayer = new Kinetic.Layer({
 		id: 'backgroundLayer'
@@ -313,6 +363,7 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		id: 'menuLayer'
 	}); //fifth layer
 	
+	//refreshes the layers and draws canvas
 	function drawAllLayers()
 	{	
 		canvas.clear();
@@ -329,19 +380,15 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 	}
 	
 	/* Place background */
-	var rect = new Kinetic.Rect({
+	var rect = new Kinetic.Image({
 		x: 0,
 		y: 0,
 		width: screenWidth,
 		height: screenHeight,
-		fill: 'black',
-		stroke: 'red',
-		strokeWidth: 4
+		image: texasPasture
 	});
 	// add the background to canvas
 	backgroundLayer.add(rect);
-	//drawAllLayers();
-	
 	
 	var board = new Kinetic.Image({
 		x: screenWidth * .1,
@@ -352,11 +399,9 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		id: 'texas'
 	});
 	boardLayer.add(board);
-	//canvas.add(boardLayer);
-	//drawAllLayers();
-	
 	
 	//make array that hold hexagon positions
+	{
 	var arrayHexPos = [];
 	arrayHexPos.push(hexPosStartX);
 	arrayHexPos.push(hexPosStartY);
@@ -408,6 +453,7 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 	
 	arrayHexPos.push(arrayHexPos[30]);
 	arrayHexPos.push(arrayHexPos[31] + hexHeight + trailWidth);
+	}
 	
 	//set properties for kinetic hexagon types
 	for(var i = 0; i < 17; i++)
@@ -417,12 +463,19 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 			y:arrayHexPos[i*2+1],
 			width: hexWidth,
 			height: hexHeight,
-			image: hexPic,
 			id: 'H' + i
 		});
+		switch(hexResourceArray[i]) 
+		{
+			case 0: hex.setImage(hexDesertPic); break;
+			case 1: hex.setImage(hexCottonPic); break;
+			case 2: hex.setImage(hexLimestonePic); break;
+			case 3: hex.setImage(hexOilPic); break;
+			case 4: hex.setImage(hexRedClayPic); break;
+			case 5: hex.setImage(hexCattlePic); break;
+		}
 		hexagonLayer.add(hex);
 	}
-	//drawAllLayers();
 	
 	//function that finds the coordinates of a specific
 		//corner of a hexagon
@@ -489,16 +542,62 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 				return X;
 		}
 	}
+	//add layers to stage
 	canvas.add(backgroundLayer);
 	canvas.add(boardLayer);
 	canvas.add(hexagonLayer);
-	//var settlementWidth = trailWidth;
-	//var settlementHeight = settlementWidth;
+
+	//putting coordinates and rotation of each trail into arrays
+	{
+	var arrayTrails = [];
+	var arrayTrailsPos = []; //will hold coordinates for 
+	var arrayTrailsRot = [];
 	
+	arrayTrailsPos.push(findCoordHex('H0',0,0) + screenWidth * .00469);
+	arrayTrailsPos.push(findCoordHex('H0',0,1) - screenWidth * .00573);
+	arrayTrailsRot.push(33);
+	
+	arrayTrailsPos.push(findCoordHex('H0',5,0) - screenWidth * .00885);
+	arrayTrailsPos.push(findCoordHex('H0',5,1) + screenWidth * .00573);
+	arrayTrailsRot.push(-33);
+	
+	arrayTrailsPos.push(findCoordHex('H0',0,0) + screenWidth * .01459);
+	arrayTrailsPos.push(findCoordHex('H0',0,1));
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H0',4,0) + screenWidth * .01459);
+	arrayTrailsPos.push(findCoordHex('H0',4,1) + trailWidth);
+	arrayTrailsRot.push(270);
+	
+	arrayTrailsPos.push(findCoordHex('H0',3,0) + screenWidth * .01458);
+	arrayTrailsPos.push(findCoordHex('H0',3,1) + screenWidth * .00989);
+	arrayTrailsRot.push(213);
+	
+	arrayTrailsPos.push(findCoordHex('H0',2,0) + screenWidth * .00885);
+	arrayTrailsPos.push(findCoordHex('H0',2,1) - screenWidth * .00573);
+	arrayTrailsRot.push(-213);
+	}
+	
+	//make trails and add them to pieceLayer and then stage
+	for(var i=0; i<=5; i++) //
+	{
+		var trail = new Kinetic.Rect({
+			x: arrayTrailsPos[i*2],
+			y: arrayTrailsPos[i*2+1],
+			fill: 'orange',
+			width: trailWidth,
+			height: trailHeight - screenWidth * .01042,
+			rotation: arrayTrailsRot[i],
+			id: 'T' + i
+		});
+		arrayTrails.push(trail);
+		pieceLayer.add(arrayTrails[i]);
+		console.log(screenWidth);
+	}
+	
+	//put coordinates for settlements into array
+	{
 	var arraySettlementsPos = [];
-	
-	//console.log(findCoordHex(0,0,0));
-	//console.log(findCoordHex(0,0,1));
 	
 	arraySettlementsPos.push(findCoordHex('H0',0,0) + settlementMoveLeft/4);//0
 	arraySettlementsPos.push(findCoordHex('H0',0,1) + settlementMoveUp);
@@ -628,14 +727,16 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 	arraySettlementsPos.push(findCoordHex('H16',2,1) + settlementMoveUp);
 	arraySettlementsPos.push(findCoordHex('H16',3,0));//52
 	arraySettlementsPos.push(findCoordHex('H16',3,1) + settlementMoveUp/2);
+	}
 	
+	//create settlements and add them to pieceLayer and then add to stage
 	var arraySettlements = [];
 	for(var i=0; i<=52; i++) //
 	{
 		var settlement = new Kinetic.Image({
 			x: arraySettlementsPos[i*2],
 			y: arraySettlementsPos[i*2+1],
-			image: settlementimg,
+			image: settlementImg,
 			width: settlementWidth,
 			height: settlementHeight,
 			id: 'S' + i
@@ -643,46 +744,21 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		arraySettlements.push(settlement);
 		pieceLayer.add(arraySettlements[i])
 	}
-	//canvas.add(pieceLayer);
-	//drawAllLayers();
-	
-	var arrayTrails = [];
-	var arrayTrailsPos = []; //will hold coordinates for 
-	var arrayTrailsRot = [];
-	
-	arrayTrailsPos.push(findCoordHex('H0',0,0));
-	arrayTrailsPos.push(findCoordHex('H0',0,1));
-	arrayTrailsRot.push(270);
-	
-	for(var i=0; i<=-1; i++) //
-	{
-		var trail = new Kinetic.Rect({
-			x: arrayTrailsPos[i*2] + 28,
-			y: arrayTrailsPos[i*2+1],
-			fill: 'orange',
-			width: trailWidth,
-			height: trailHeight - 20,
-			rotation: arrayTrailsRot[i],
-			id: 'T' + i
-		});
-		arrayTrails.push(trail);
-		pieceLayer.add(arrayTrails[i]);
-	}
-	//drawAllLayers();
-	
 	canvas.add(pieceLayer);
 	
 	
 	/* menu setup */
+	//menu sizing variables
 	var menuPosStartX = screenWidth * .02;
 	var menuPosStartY = screenHeight * .05;
-	var menuButHeight = screenHeight * .1;
-	var menuButWidth = screenWidth * .1;
+	var menuButHeight = screenHeight * .05;
+	var menuButWidth = screenWidth * .05;
 	var menuButSpacing = screenHeight * .02;
-	var menuTrade = new Kinetic.Rect({
-		x: menuPosStartX,
-		y: menuPosStartY,
-		fill: 'blue',
+	//make each menu item and add to board
+	var menuTrade = new Kinetic.Image({
+		x: menuPosStartX + menuButSpacing + menuButWidth,
+		y: menuUnderlayStartY1 + menuButSpacing * 2 + menuButHeight,
+		image: tradeClip,
 		width: menuButWidth,
 		height: menuButHeight
 	});
@@ -715,26 +791,24 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 			//$('#send-trade-form').find("input[type=text], textarea").val("0");
 		});
 	});
-	
-	//Create Duel menu button
-	var menuDuel = new Kinetic.Rect({
-		x: menuPosStartX,
-		y: menuPosStartY + menuButHeight + menuButSpacing,
-		fill: 'red',
+	var menuDuel = new Kinetic.Image({
+		x: menuPosStartX + menuButSpacing + menuButWidth,
+		y: menuUnderlayStartY1 + menuButSpacing,
+		image: duelClip,
 		width: menuButWidth,
 		height: menuButHeight
 	});
-	
-	//Create Buy menu button
-	var menuBuy = new Kinetic.Rect({
+	var menuBuy = new Kinetic.Image({
 		x: menuPosStartX,
-		y: menuPosStartY + (menuButHeight + menuButSpacing)*2,
-		fill: 'white',
+		y: menuUnderlayStartY1 + menuButSpacing * 2 + menuButHeight,
+		image: buyClip,
 		width: menuButWidth,
 		height: menuButHeight
 	});
-	
-	//Create Cards menu button
+		menuBuy.on('click', function(){
+		$(location).attr('href', '#buy_modal')
+	});
+	//make dice and add to board
 	var menuCards = new Kinetic.Rect({
 		x: menuPosStartX,
 		y: menuPosStartY + (menuButHeight + menuButSpacing)*3,
@@ -742,14 +816,13 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		width: menuButWidth,
 		height: menuButHeight
 	});
-	
 	//Create End Turn menu button
-	var menuEndTurn = new Kinetic.Rect({
+	var menuEndTurn = new Kinetic.Image({
 		x: menuPosStartX,
-		y: menuPosStartY + (menuButHeight + menuButSpacing)*4,
-		fill: 'blue',
-		width: menuButWidth,
-		height: menuButHeight
+		y: menuUnderlayStartY1 - (menuButHeight * 2 + menuButSpacing),
+		image: endTurnPic,
+		width: menuButWidth * 2,
+		height: menuButHeight * 2
 	});
 	//When clicked, send the message 'end_turn' to the server
 	menuEndTurn.on('click' || 'tap', function(){
@@ -763,57 +836,63 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		document.body.style.cursor = 'default';
 	});
 	
-	//Create Roll Dice menu button
 	var menuRollDice = new Kinetic.Image({
 		x: menuPosStartX,
-		y: menuPosStartY + (menuButHeight + menuButSpacing)*5,
-		image: wood,
+		y: menuUnderlayStartY1 + menuButSpacing,
+		image: diceClip,
 		width: menuButWidth,
 		height: menuButHeight
 	});
-	//When clicked, send the message 'end_turn' to the server
-	menuRollDice.on('click' || 'tap', function(){
-		socket.emit('resource_production');
-	});
-	//When mouse is over the button the cursor will be changed
-	menuRollDice.on('mouseover', function () {
-		document.body.style.cursor = 'pointer';
-	});
-	menuRollDice.on('mouseout', function () {
-		document.body.style.cursor = 'default';
-	});
+	
+	//var diceSpriteHeight = screenWidth * .033333;
+	//diePic.height = diceSpriteHeight * 6;
+	//diePic.width = diceSpriteHeight * 6;
 	var diceSpriteHeight = 64;
+	diePic.height = 64;
+	diePic.width = 64;
 	var animateDice = {
-			cycle1: [	0, 64, 64, 64,
-						0, 320, 64, 64,
-						0, 192, 64, 64,
-						0, 0, 64, 64,
-						0, 128, 64, 64,
-						0, 256, 64, 64
+			cycle1: [	0, diceSpriteHeight, diceSpriteHeight, diceSpriteHeight,
+						0, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight,
+						0, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight,
+						0, 0, diceSpriteHeight, diceSpriteHeight,
+						0, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight,
+						0, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight
 					],
-			cycle2: [	64, 128, 64, 64,
-						64, 0, 64, 64,
-						64, 192, 64, 64,
-						64, 64, 64, 64,
-						64, 320, 64, 64,
-						64, 256, 64, 64
-					]};
-			
+			cycle2: [	diceSpriteHeight, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight,
+						diceSpriteHeight, 0, diceSpriteHeight, diceSpriteHeight,
+						diceSpriteHeight, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight,
+						diceSpriteHeight, diceSpriteHeight, diceSpriteHeight, diceSpriteHeight,
+						diceSpriteHeight, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight,
+						diceSpriteHeight, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight
+					],
+			dieOne1:[	0, 0, diceSpriteHeight, diceSpriteHeight],
+			dieOne2:[	0, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
+			dieOne3:[	0, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
+			dieOne4:[	0, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
+			dieOne5:[	0, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight],
+			dieOne6:[	0, diceSpriteHeight * 6, diceSpriteHeight, diceSpriteHeight],
+			dieTwo1:[	diceSpriteHeight, 0, diceSpriteHeight, diceSpriteHeight],
+			dieTwo2:[	diceSpriteHeight, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
+			dieTwo3:[	diceSpriteHeight, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
+			dieTwo4:[	diceSpriteHeight, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
+			dieTwo5:[	diceSpriteHeight, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight],
+			dieTwo6:[	diceSpriteHeight, diceSpriteHeight * 6, diceSpriteHeight, diceSpriteHeight]
+					};
 	var menuDie1 = new Kinetic.Sprite({
 		x: menuPosStartX,
-		y: menuPosStartY + (menuButHeight + menuButSpacing)*6,
-		width: menuButWidth/2 - menuButSpacing,
-		height: menuButWidth/2 - menuButSpacing,
+		y: menuUnderlayStartY2 - 64,
+		width: diceSpriteHeight * 6,
+		height: diceSpriteHeight * 6,
 		image: diePic,
 		id: 'D0',
 		animation: 'cycle1',
 		animations: animateDice,
-		frameRate: 15,
+		frameRate: 10,
 		frameIndex: 0
 	});
 	var menuDie2 = new Kinetic.Sprite({
-		x: menuPosStartX + menuButWidth/2 + hexSpacingX,
-		y: menuPosStartY + (menuButHeight + menuButSpacing)*6,
+		x: menuPosStartX * 2 + 64,
+		y: menuUnderlayStartY2 - 64,
 		width: menuButWidth/2 - menuButSpacing,
 		height: menuButWidth/2 - menuButSpacing,
 		image: diePic,
@@ -823,75 +902,146 @@ preLoadImages([ 'img/Board.png', 'img/Cotton_2.png', 'img/settlement.png', 'img/
 		frameRate: 10,
 		frameIndex: 0
 	});
-	menuLayer.add(menuTrade);
-	menuLayer.add(menuDuel);
-	menuLayer.add(menuBuy);
-	menuLayer.add(menuCards);
-	menuLayer.add(menuEndTurn);
-	menuLayer.add(menuRollDice);
-	menuLayer.add(menuDie1);
-	menuLayer.add(menuDie2);
-	//canvas.add(menuLayer);
-
-	//drawAllLayers();
 	
-	
-	canvas.add(menuLayer);
-	
+	//dice functionality
+	//When clicked, send the message 'end_turn' to the server
 	var isDiceOn = false;
-	
-	
-	menuRollDice.on('click' || 'tap',  function() {
+	menuRollDice.on('click' || 'tap', function(){
 		if(!isDiceOn)
 		{
 			isDiceOn = true;
 			menuDie1.start();
 			menuDie2.start();
-			setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, 1500);
+			setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, Math.random() * (1800 - 1500) + 1500);
 		}	
+		//socket.emit('resource_production');
+		//console.log("Sent resource_production from client");
 	});
-	/*
-	var isDiceOn = true;
-	menuDie1.start();
-	menuDie2.start();
-	//canvas.get('#D0')[0].start();
-	//canvas.get('#D1')[0].start();
+	//When mouse is over the button the cursor will be changed
+	menuRollDice.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuRollDice.on('mouseout', function () {
+		document.body.style.cursor = 'default';
+	});
 	
-	menuRollDice.on('click', function() {
-		if(isDiceOn)
-		{
-			isDiceOn = false;
-			menuDie1.stop();
-			menuDie2.stop();
-		}
-		else
-		{
-			isDiceOn = true;
-			menuDie1.start();
-			menuDie2.start();
-		}
+	var menuUnderlay1 = new Kinetic.Rect({
+		x: 0,
+		y: menuUnderlayStartY1,
+		width: screenWidth * .46875,
+		height:screenWidth * .1302,
+		fill: 'brown',
+		cornerRadius: 15
 	});
-		menuRollDice.on('tap', function() {
-		if(isDiceOn)
-		{
-			isDiceOn = false;
-			menuDie1.stop();
-			menuDie2.stop();
-		}
-		else
-		{
-			isDiceOn = true;
-			menuDie1.start();
-			menuDie2.start();
-		}
+	var menuUnderlay2 = new Kinetic.Rect({
+		x: 0,
+		y: menuUnderlayStartY2,
+		width: screenWidth * .1302,
+		height: screenHeight - menuUnderlayStartY1 * .5,
+		fill: 'brown',
+		cornerRadius: 15
 	});
-	console.log(canvas.toJSON());
+	var resourceCattle = new Kinetic.Image({
+		x: screenWidth * .18229,
+		y: screenHeight - screenWidth * .125,
+		width: screenWidth * .05208,
+		height: screenWidth * .05208,
+		Image: cattleClip
+	});
+	var resourceCattleText = new Kinetic.Text({
+		x: resourceCattle.getAbsolutePosition().x + resourceCattle.getHeight() / 2,
+		y: resourceCattle.getAbsolutePosition().y + resourceCattle.getHeight(),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var resourceRedClay = new Kinetic.Image({
+		x: screenWidth * .23958,
+		y: screenHeight - screenWidth * .125,
+		width: screenWidth * .05208,
+		height: screenWidth * .05208,
+		Image: redClayClip
+	});
+	var resourceRedClayText = new Kinetic.Text({
+		x: resourceRedClay.getAbsolutePosition().x + resourceRedClay.getHeight() / 2,
+		y: resourceRedClay.getAbsolutePosition().y + resourceRedClay.getHeight(),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var resourceCotton = new Kinetic.Image({
+		x: screenWidth * .2969,
+		y: screenHeight - screenWidth * .125,
+		width: screenWidth * .05208,
+		height: screenWidth * .05208,
+		Image: cottonClip
+	});
+	var resourceCottonText = new Kinetic.Text({
+		x: resourceCotton.getAbsolutePosition().x + resourceCotton.getHeight() / 2,
+		y: resourceCotton.getAbsolutePosition().y + resourceCotton.getHeight(),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var resourceLimestone = new Kinetic.Image({
+		x: screenWidth * .35417,
+		y: screenHeight - screenWidth * .125,
+		width: screenWidth * .05208,
+		height: screenWidth * .05208,
+		Image: limestoneClip
+	});
+	var resourceLimestoneText = new Kinetic.Text({
+		x: resourceLimestone.getAbsolutePosition().x + resourceLimestone.getHeight() / 2,
+		y: resourceLimestone.getAbsolutePosition().y + resourceLimestone.getHeight(),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	var resourceOil = new Kinetic.Image({
+		x: screenWidth * .41146,
+		y: screenHeight - screenWidth * .125,
+		width: screenWidth * .05208,
+		height: screenWidth * .05208,
+		Image: oilClip
+	});
+	var resourceOilText = new Kinetic.Text({
+		x: resourceOil.getAbsolutePosition().x + resourceOil.getHeight() / 2,
+		y: resourceOil.getAbsolutePosition().y + resourceOil.getHeight(),
+		text: '0',
+		fontSize: screenWidth * .010417,
+		ontFamily: 'Calibri',
+        fill: 'black'
+	});
+	
+	menuLayer.add(menuUnderlay1);
+	menuLayer.add(menuUnderlay2);
+	menuLayer.add(menuTrade);
+	menuLayer.add(menuDuel);
+	menuLayer.add(menuBuy);
+	//menuLayer.add(menuCards);
+	menuLayer.add(menuEndTurn);
+	menuLayer.add(menuRollDice);
+	menuLayer.add(menuDie1);
+	menuLayer.add(menuDie2);
+	menuLayer.add(resourceCattle);
+	menuLayer.add(resourceCattleText);
+	menuLayer.add(resourceRedClay);
+	menuLayer.add(resourceRedClayText);
+	menuLayer.add(resourceCotton);
+	menuLayer.add(resourceCottonText);
+	menuLayer.add(resourceLimestone);
+	menuLayer.add(resourceLimestoneText);
+	menuLayer.add(resourceOil);
+	menuLayer.add(resourceOilText);
+	
+	canvas.add(menuLayer);
 	
 	
-	});
-	*/
+	
+	//console.log(canvas.toJSON());
 	
 });
-
-});
-

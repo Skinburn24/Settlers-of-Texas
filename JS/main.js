@@ -1,4 +1,3 @@
-
 //initialize stage of game
 var canvas = new Kinetic.Stage({
 		container: 'container',
@@ -13,7 +12,7 @@ function preLoadImages(arr){
     var newimages=[], loadedimages=0
     var postaction=function(){}
     var arr=(typeof arr!="object")? [arr] : arr
-    function imageloadpost(){
+	function imageloadpost(){
         loadedimages++
         if (loadedimages==arr.length){
             postaction(newimages); //call postaction and pass in newimages array as parameter
@@ -83,71 +82,92 @@ var arrayImageAddreses = [ 'IMG/Board_2.png', 	//0
 					'IMG/diceclip.png', 		//20
 					'IMG/cottonclip.png',		//21
 					'IMG/cattleclip.png', 		//22
-					'IMG/endTurn.png' 			//23
+					'IMG/endTurn.png', 			//23
+					'IMG/settlementMaroon.png',		//7 
+					'IMG/settlementBlue.png',		//7 
+					'IMG/settlementYellow.png',		//7 
+					'IMG/settlementGreen.png',		//7 
 					];
 preLoadImages(arrayImageAddreses).done(function(arrayImages){
 //websocket communication code
-		var messageCopy;
 
-		$('#accept-trade-button').click(function acceptTrade() {
-			socket.emit("trade_accepted", messageCopy);
-			$('#receive-trade-modal').modal('hide');
-			$('#receive-trade-form').find("input[type=text], textarea").val("0");
-			messageCopy = null;
-		});
-		
-		$('#reject-trade-button').click(function rejectTrade() {
-			var firstPlayer = messageCopy.firstPlayer;
-			var secondPlayer = messageCopy.secondPlayer;
-			socket.emit("trade_rejected", {firstPlayer: firstPlayer, secondPlayer: secondPlayer});
-			$('#receive-trade-modal').modal('hide');
-			$('#receive-trade-form').find("input[type=text], textarea").val("0");
-			messageCopy = null;
-		});
-		
-		$('#counter-trade-button').click(function() {
-			var firstPlayer = messageCopy.firstPlayer;
-			var secondPlayer = messageCopy.secondPlayer;
-		
-			var tradeTerms = [];
-			var $inputs = $('#receive-trade-form :input');
-			$inputs.each(function(i) {
-				tradeTerms[i] = $(this).val();
-			});
+	var messageCopy;
+
+	$('#accept-trade-button').click(function () {
+		socket.emit("trade_accepted", messageCopy);
+		$('#receive-trade-modal').modal('hide');
+		$('#receive-trade-form').find("input[type=text], textarea").val("0");
+		messageCopy = null;
+	});
 	
-			var firstPlayerResources = [];
-			var secondPlayerResources = [];
-			for(var i = 0; i < tradeTerms.length; i++) {
-				if(i % 2 === 0) {
-					firstPlayerResources.push(tradeTerms[i]);
-				}
-				else {
-					secondPlayerResources.push(tradeTerms[i]);
-				}
-			}
-			socket.emit("trade_player", {firstPlayer: secondPlayer, secondPlayer: firstPlayer, 
-										 firstPlayerResources: secondPlayerResources, 
-										 secondPlayerResources: firstPlayerResources});
-			
-			$('#receive-trade-modal').modal('hide');
-			$('#receive-trade-form').find("input[type=text], textarea").val("0");
-			messageCopy = null;
+	$('#reject-trade-button').click(function () {
+		var firstPlayer = messageCopy.firstPlayer;
+		var secondPlayer = messageCopy.secondPlayer;
+		socket.emit("trade_rejected", {firstPlayer: firstPlayer, secondPlayer: secondPlayer});
+		$('#receive-trade-modal').modal('hide');
+		$('#receive-trade-form').find("input[type=text], textarea").val("0");
+		messageCopy = null;
+	});
+	
+	$('#counter-trade-button').click(function() {
+		var firstPlayer = messageCopy.firstPlayer;
+		var secondPlayer = messageCopy.secondPlayer;
+	
+		var tradeTerms = [];
+		var $inputs = $('#receive-trade-form :input');
+		$inputs.each(function(i) {
+				tradeTerms[i] = $(this).val();
 		});
+		tradeTerms.splice(0,1);
+		console.log(tradeTerms);
+	
+		var firstPlayerResources = [];
+		var secondPlayerResources = [];
+		for(var i = 0; i < tradeTerms.length; i++) {
+			if(i % 2 === 0 ) {
+				firstPlayerResources.push(tradeTerms[i]);
+			}
+			else {
+				secondPlayerResources.push(tradeTerms[i]);
+			}
+		}
+		socket.emit("trade_player", {firstPlayer: secondPlayer, secondPlayer: firstPlayer, 
+									 firstPlayerResources: secondPlayerResources, 
+									 secondPlayerResources: firstPlayerResources});
+		
+		$('#receive-trade-modal').modal('hide');
+		$('#receive-trade-form').find("input[type=text], textarea").val("0");
+		messageCopy = null;
+	});
+
 	
 	//This player variable will keep track of all of the players data on the client side
 	var player = new create_player();
+	
+	//need to get this from client
+	chitNumberArray = [2, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 12, 99];
+	hexResourceArray = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	
 	$("#background-image").fullscreenBackground();
 	$('.login-section').css('display', 'block');
 	$('#container').css('display', 'none');
 
     // Initialize socket.io.
+    // document.location.host returns the host of the current page.
     var socket = io.connect('http://' + document.location.host);
 
+    // If a welcome message is received, it means the chat room is available.
+    // The Log In button will be then enabled.
     socket.on(
       'welcome',
       function(message) {
         $('#join-game-button').attr('disabled', false);
+		console.log(message.clientHexArray);
+		hexResourceArray = message.clientHexArray;
+		refreshHexImages();
+		console.log(message.clientChitArray);
+		chitNumberArray = message.clientChitArray;
+		refreshChitNumbers();
       });
 
     socket.on(
@@ -160,10 +180,10 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		player.playerId = message.playerId;
 		player.playerName = message.playersName;
 		player.playerColor = message.playersColor;
-		console.log(player.playerId);
-		console.log(player);
       });
 
+    // If a login_failed message is received, stay in the login section but
+    // display an error message.
     socket.on(
       'login_failed',
       function() {
@@ -174,9 +194,11 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	socket.on(
       'end_turn',
       function(message) {
+      		//Disable buttons and set data for client side player
 			checkTurn(message.playerTurns[player.playerId].isTurn);
       });
 
+	var isDiceOn = false;
 	// If a resource_production message is received, show dice roll animation and display roll value
 	socket.on(
 		'resource_production',
@@ -185,6 +207,8 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			{
 
 				//player = message.pArray[id];
+
+				console.log(player);
 				
 			    player.totalResources = message.pArray[player.playerId].totalResources;
 			    player.numCotton = message.pArray[player.playerId].numCotton;
@@ -192,26 +216,83 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			    player.numOil = message.pArray[player.playerId].numOil;
 			    player.numCattle = message.pArray[player.playerId].numCattle;
 			    player.numClay = message.pArray[player.playerId].numClay;
+
+				resourceCottonText.setText((player.numCotton).toString());
+				resourceRedClayText.setText((player.numClay).toString());
+				resourceLimestoneText.setText((player.numLimestone).toString());
+				resourceOilText.setText((player.numOil).toString());
+				resourceCattleText.setText((player.numCattle).toString());
 				
-				console.log(message);
+				menuLayer.draw();
+
+				var d1 = parseInt(message.dArray[0]);
+				var d2 = parseInt(message.dArray[1]);
+				
+				menuDie1.stop();
+				menuDie2.stop();
+				
+				//console.log(message);
 				console.log(player);
 
+				menuDie1.setAnimation('cycle1');
+				menuDie2.setAnimation('cycle2'); 
 
 				isDiceOn = true;
 				menuDie1.start();
 				menuDie2.start();
-				
-				setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, 1500);
-				
-				var d1 = parseInt(message.dArray[0]);
-				var d2 = parseInt(message.dArray[1]);
-				
+
+				setTimeout( function() { 
+					isDiceOn = false; 
+					menuDie1.stop(); 
+					menuDie2.stop();
+					switch(d1) {
+						case 1:
+							menuDie1.setAnimation('dieOne1');
+							break;
+						case 2:
+							menuDie1.setAnimation('dieOne2');
+							break;
+						case 3:
+							menuDie1.setAnimation('dieOne3');
+							break;
+						case 4:
+							menuDie1.setAnimation('dieOne4');
+							break;
+						case 5:
+							menuDie1.setAnimation('dieOne5');
+							break;
+						case 6:
+							menuDie1.setAnimation('dieOne6');
+							break;
+					}
+					switch(d2) {
+						case 1:
+							menuDie2.setAnimation('dieTwo1');
+							break;
+						case 2:
+							menuDie2.setAnimation('dieTwo2');
+							break;
+						case 3:
+							menuDie2.setAnimation('dieTwo3');
+							break;
+						case 4:
+							menuDie2.setAnimation('dieTwo4');
+							break;
+						case 5:
+							menuDie2.setAnimation('dieTwo5');
+							break;
+						case 6:
+							menuDie2.setAnimation('dieTwo6');
+							break;
+					}
+					menuDie1.start();
+					menuDie2.start();
+					//console.log('Changing the dice animations');
+				}, 1500);				
+
 				var totValue = d1 + d2;
 
-
-				
-				setTimeout( function() { console.log("You rolled a " + totValue); }, 1500);
-				
+				setTimeout( function() { console.log("You rolled a " + totValue); }, 1500);	
 			}	 
 		}
 	);
@@ -220,15 +301,39 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	socket.on(
 		'buy_outpost',
 		function(message) {
+			console.log('Bought an outpost');
 			for(var i = 0; i < arraySettlements.length; i++)
 			{
 				arraySettlements[i].listening(false);
 				if(arraySettlements[i].getId() == message.OPID)
 				{
 					arraySettlements[i].shadowEnabled(true);
-					console.log(arraySettlements[i]);
+					//console.log(arraySettlements[i]);
+					switch(message.PID) {
+						case 0:
+							arraySettlements[i].setImage(settlementMaroonPic);
+							break;
+						case 1:
+							arraySettlements[i].setImage(settlementBluePic);
+							break;
+						case 2:
+							arraySettlements[i].setImage(settlementYellowPic);
+							break;
+						case 3:
+							arraySettlements[i].setImage(settlementGreenPic);
+							break;
+					}
 				}
 			}
+			
+			resourceCottonText.setText((player.numCotton).toString());
+			resourceRedClayText.setText((player.numClay).toString());
+			resourceLimestoneText.setText((player.numLimestone).toString());
+			resourceOilText.setText((player.numOil).toString());
+			resourceCattleText.setText((player.numCattle).toString());
+			
+			pieceLayer.draw();
+			menuLayer.draw();
 
 	});
 	
@@ -237,22 +342,54 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
       function tradeTerms(message) {
 			if(player.playerId == message.secondPlayer) {
 				messageCopy = message;
-				
+
+				$('#receive-trade-form :input:first').val(message.firstPlayer);
 				var j = 0;
 				$('#receive-trade-form :input').each(function(i) {
-					if(i % 2 === 0) {
-						$(this).val(message.firstPlayerResources[j]);
+					if(i % 2 === 0 && i != 0) {
+						$(this).val(message.secondPlayerResources[j]);
 						j = j + 1;
 					}
 				});
 				j = 0;
 				$('#receive-trade-form :input').each(function(i) {
-					if(i % 2 !== 0) {
-						$(this).val(message.secondPlayerResources[j]);
+					if(i % 2 !== 0 && i != 0) {
+						$(this).val(message.firstPlayerResources[j]);
 						j = j + 1;
 					}
 				});
 				$('#receive-trade-modal').modal('show');		
+			}
+      });
+
+	socket.on(
+      	'trade_accepted',
+     	 function tradeTerms(message) {
+      		console.log(message);
+			if(player.playerId == message.firstPlayer || player.playerId == message.secondPlayer) {
+				player.totalResources = message.pArray[player.playerId].totalResources;
+				player.numCotton = message.pArray[player.playerId].numCotton;
+				player.numLimestone = message.pArray[player.playerId].numLimestone;
+				player.numOil = message.pArray[player.playerId].numOil;
+				player.numCattle = message.pArray[player.playerId].numCattle;
+				player.numClay = message.pArray[player.playerId].numClay;
+
+				resourceCottonText.setText((player.numCotton).toString());
+				resourceLimestoneText.setText((player.numLimestone).toString());
+				resourceOilText.setText((player.numOil).toString());
+				resourceCattleText.setText((player.numCattle).toString());
+				resourceRedClayText.setText((player.numClay).toString());
+				menuLayer.draw();
+
+				$('#accept-trade-modal').modal('show');		
+			}
+      });
+
+	socket.on(
+    	'trade_rejected',
+    	function tradeTerms(message) {
+			if(player.playerId == message.firstPlayer || player.playerId == message.secondPlayer) {
+				$('#reject-trade-modal').modal('show');		
 			}
       });
 
@@ -270,10 +407,6 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
       $('#player-name').val('');
     });
 
-
-
-
-//
 	function checkTurn(bool)
 	{
 		if(bool) {
@@ -281,6 +414,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			menuTrade.listening(true);
 			menuEndTurn.listening(true);
 			menuRollDice.listening(true);
+			menuBuy.listening(true);
 			player.isTurn = true;
 		}
 		else {
@@ -288,13 +422,11 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			menuTrade.listening(false);
 			menuEndTurn.listening(false);
 			menuRollDice.listening(false);
+			menuBuy.listening(false);
 			player.isTurn = false;
 		}
 	}
 	
-	//need to get this from client
-	hexResourceArray = [4, 2, 5, 1, 1, 4, 2, 3, 2, 5, 3, 0, 4, 3, 5, 1, 5];
-
 //
 	//arrayImages is the array of Kinetic.image already preloaded
 	var texas = arrayImages[0];
@@ -321,6 +453,10 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var cottonClip = arrayImages[21];
 	var cattleClip = arrayImages[22];
 	var endTurnPic = arrayImages[23];
+	var settlementMaroonPic = arrayImages[24];
+	var settlementBluePic = arrayImages[25];
+	var settlementYellowPic = arrayImages[26];
+	var settlementGreenPic = arrayImages[27];
 	
 	//sizing properties
 	//get screen size for mobile or desktop
@@ -479,6 +615,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	}
 	
 	//set properties for kinetic hexagon types
+	
 	for(var i = 0; i < 17; i++)
 	{
 		var hex = new Kinetic.Image({
@@ -487,7 +624,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			width: hexWidth,
 			height: hexHeight,
 			id: 'H' + i
-		});
+		});	
 		switch(hexResourceArray[i]) 
 		{
 			case 0: hex.setImage(hexDesertPic); break;
@@ -498,6 +635,24 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 			case 5: hex.setImage(hexCattlePic); break;
 		}
 		hexagonLayer.add(hex);
+	}
+
+	function refreshHexImages()
+	{
+		for(var i = 0; i < 17; i++)
+		{
+			
+			switch(hexResourceArray[i]) 
+			{
+				case 0: canvas.find('#H' + i)[0].setImage(hexDesertPic); break;
+				case 1: canvas.find('#H' + i)[0].setImage(hexCottonPic); break;
+				case 2: canvas.find('#H' + i)[0].setImage(hexLimestonePic); break;
+				case 3: canvas.find('#H' + i)[0].setImage(hexOilPic); break;
+				case 4: canvas.find('#H' + i)[0].setImage(hexRedClayPic); break;
+				case 5: canvas.find('#H' + i)[0].setImage(hexCattlePic); break;
+			}
+		}
+		canvas.draw();
 	}
 	
 	//function that finds the coordinates of a specific
@@ -519,7 +674,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		//var Y = arrayHexs[hexId].getAbsolutePosition().y;
 		//console.log(hexagonLayer.find('#hex')[0]);//.getAbsolutePosition().x;
 		//console.log(hexagonLayer.find('#hex')[1]);//.getAbsolutePosition().y;
-		var X = canvas.find('#'+hexId)[0].getAbsolutePosition().x; 
+		var X = canvas.find('#' + hexId)[0].getAbsolutePosition().x; 
 		var Y = canvas.find('#' + hexId)[0].getAbsolutePosition().y; 
 		if(corner == 0)
 		{
@@ -870,6 +1025,82 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		console.log(screenWidth);
 	}
 
+
+	//make chits here
+	arrayChits = [];
+	chitLabelArray = [];
+	var chitRadius = screenWidth * .010417 * 1.5;
+	//find the exact coordinates of the center of a hexagon
+		//param: the hexagon ID from the canvas
+	function findCenterHex(hexId)
+	{
+		var X = canvas.find('#' + hexId)[0].getAbsolutePosition().x; 
+		var Y = canvas.find('#' + hexId)[0].getAbsolutePosition().y; 
+		var coord = [];
+		coord.push(X + hexWidth/2);
+		coord.push(Y + hexHeight/2);
+		return coord;
+	}	
+	
+	for(var i=0; i<17; i++) //
+	{
+		var chit = new Kinetic.Circle({
+			x: findCenterHex('H' + i)[0],
+			y: findCenterHex('H' + i)[1],
+			fill: 'brown',
+			radius: chitRadius,
+			id: 'C' + i
+		});
+		arrayChits.push(chit);
+		pieceLayer.add(arrayChits[i]);
+		//console.log(chit.getAbsolutePosition());
+		//console.log(chitNumberArray[i]);
+		var chitLabel = new Kinetic.Text({
+			x: chit.getAbsolutePosition().x - chitRadius,
+			y: chit.getAbsolutePosition().y - (chitRadius / 2),
+			text: 'XX',
+			fontSize: chitRadius,
+			fontFamily: 'Calibri',
+			fontStyle: 'bold',
+			width: chitRadius * 2,
+			align: 'center',
+			fill: 'black',
+			id: 'CL' + i
+		});
+		chitLabelArray.push(chitLabel);
+		pieceLayer.add(chitLabelArray[i]);
+	}
+	
+	function refreshChitNumbers()
+	{
+		var j = 0;
+		for(var i = 0; i < 17; i++)
+		{
+			//console.log(canvas.find('#CL' + i)[0]);
+			//console.log(canvas.find('#CL' + i)[0]);
+			//console.log(chitNumberArray[i]);
+			//chitLabelArray[i].getText(chitNumberArray[i]);
+			if(hexResourceArray[i] == 0)
+			{	
+				//chitLabelArray[i].remove();
+				//arrayChits[i].remove();
+				
+				canvas.find('#CL' + i)[0].remove();
+				canvas.find('#C' + i)[0].remove();
+				j = j - 1;
+			}
+			if(hexResourceArray[i] != 0)	
+			{
+				var number = chitNumberArray[j];
+				
+				canvas.find('#CL' + i)[0].setText(number);
+				//console.log('test');
+			}
+			j++;
+		}
+		canvas.draw();
+	}
+
 	//put coordinates for settlements into array
 	{
 	var arraySettlementsPos = [];
@@ -1029,10 +1260,20 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		});
 
 		arraySettlements[i].listening(false);
+		
+		
+		arraySettlements[i].on('click' || 'tap', function(evt) {
+			var shape = evt.target;
+			socket.emit('buy_outpost', { pID: player.playerId, opID: shape.getId() });
+		});
+		
 	}
+	
 	canvas.add(pieceLayer);
 	
-	/* menu setup */
+	/* ==========================================================================================
+											menu setup 
+	 ==========================================================================================   */
 	//menu sizing variables
 	var menuPosStartX = screenWidth * .02;
 	var menuPosStartY = screenHeight * .05;
@@ -1040,6 +1281,8 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var menuButWidth = screenWidth * .05;
 	var menuButSpacing = screenHeight * .02;
 	//make each menu item and add to board
+
+	//Create Player Trade menu button
 	var menuTrade = new Kinetic.Image({
 		x: menuPosStartX + menuButSpacing + menuButWidth,
 		y: menuUnderlayStartY1 + menuButSpacing * 2 + menuButHeight,
@@ -1047,8 +1290,16 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		width: menuButWidth,
 		height: menuButHeight
 	});
+	
+	//When the menu Trade button is clicked...
 	menuTrade.on('click', function(){ 
 		$('#send-trade-modal').modal('show');
+	});
+	menuTrade.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuTrade.on('mouseout', function () {
+		document.body.style.cursor = 'default';
 	});
 	$('#send-trade-button').click(function() {
 		$('#send-trade-modal').modal('hide');
@@ -1074,8 +1325,9 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 									 secondPlayerResources: secondPlayerResources});
 
 		$('#send-trade-form').find("input[type=text], textarea").val("0");
-		console.log('hello');
 	});
+
+	//Create Duel menu button
 	var menuDuel = new Kinetic.Image({
 		x: menuPosStartX + menuButSpacing + menuButWidth,
 		y: menuUnderlayStartY1 + menuButSpacing,
@@ -1083,6 +1335,14 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		width: menuButWidth,
 		height: menuButHeight
 	});
+	menuDuel.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuDuel.on('mouseout', function () {
+		document.body.style.cursor = 'default';
+	});
+
+	//Create Buy menu button
 	var menuBuy = new Kinetic.Image({
 		x: menuPosStartX,
 		y: menuUnderlayStartY1 + menuButSpacing * 2 + menuButHeight,
@@ -1090,41 +1350,56 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		width: menuButWidth,
 		height: menuButHeight
 	});
+	//When the Buy menu button is clicked...
 	menuBuy.on('click', function() {
-		$('#buyModal').modal('show');
+		$('#buy-modal').modal('show');
 	});
-	
 	//When the Buy Outpost button in the buyModal has been clicked...
-	$('#buyOutpostButton').click(function() {
+	$('#buy-outpost-button').click(function() {
 	//console.log('You tried to buy an outpost sucker!!!!');
 
-	//TODO Check for needed resources
+		//Check for needed resources TODO
+		//if((player.numOil > 1) && (player.numClay > 1) && (player.numCotton > 1) && (player.numCattle > 1))
+		//{
 
-	var tempOpId;
-
-	for(var i = 0; i < arraySettlements.length; i++)
-	{
-		//tempOpId = arraySettlements[i].getId();
-
-		arraySettlements[i].on('click' || 'tap', function(evt) {
-			var shape = evt.target;
-			socket.emit('buy_outpost', { pID: player.playerId, opID: shape.getId() });
+			//var tempOpId;
+			
 			(player.victoryPoints)++;
 			(player.numOil)--;
 			(player.numClay)--;
 			(player.numCotton)--;
 			(player.numCattle)--;
-		});
+		
+			//console.log('In buy outpost: Did player resources get updated?');
+			
 
-		if(!arraySettlements[i].shadowEnabled())
-		{
-			arraySettlements[i].listening(true);	
-		}
-	}
-	pieceLayer.drawHit();
-	//socket.emit('buy_outpost', { pID: id });
+			for(var i = 0; i < arraySettlements.length; i++)
+			{
+				//tempOpId = arraySettlements[i].getId();
+			/*
+				arraySettlements[i].on('click' || 'tap', function(evt) {
+					var shape = evt.target;
+					socket.emit('buy_outpost', { pID: player.playerId, opID: shape.getId() });
+					(player.victoryPoints)++;
+					(player.numOil)--;
+					(player.numClay)--;
+					(player.numCotton)--;
+					(player.numCattle)--;
+				});
+			*/
+
+				if(!arraySettlements[i].shadowEnabled())
+				{
+					arraySettlements[i].listening(true);	
+				}
+			}
+			pieceLayer.drawHit();
+		// }
+		// else 
+		// {
+			// alert('You do not have the resources required to buy an outpost');
+		// }
 	});
-	
 	//When mouse is over the button the cursor will be changed
 	menuBuy.on('mouseover', function () {
 		document.body.style.cursor = 'pointer';
@@ -1134,6 +1409,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	});
 	
 	//make dice and add to board
+	//Create Cards menu button
 	var menuCards = new Kinetic.Rect({
 		x: menuPosStartX,
 		y: menuPosStartY + (menuButHeight + menuButSpacing)*3,
@@ -1141,6 +1417,13 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		width: menuButWidth,
 		height: menuButHeight
 	});
+	menuCards.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuCards.on('mouseout', function () {
+		document.body.style.cursor = 'default';
+	});
+
 	//Create End Turn menu button
 	var menuEndTurn = new Kinetic.Image({
 		x: menuPosStartX,
@@ -1150,7 +1433,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		height: menuButHeight * 2
 	});
 	//When clicked, send the message 'end_turn' to the server
-	menuEndTurn.on('click' || 'tap', function(){
+	menuEndTurn.on('click' || 'tap', function() {
 		socket.emit('end_turn');
 	});
 	//When mouse is over the button the cursor will be changed
@@ -1161,12 +1444,25 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 		document.body.style.cursor = 'default';
 	});
 	
+	//Create Roll Dice menu button
 	var menuRollDice = new Kinetic.Image({
 		x: menuPosStartX,
 		y: menuUnderlayStartY1 + menuButSpacing,
 		image: diceClip,
 		width: menuButWidth,
 		height: menuButHeight
+	})
+	//When clicked, send the message 'end_turn' to the server
+	menuRollDice.on('click' || 'tap', function() {
+		socket.emit('resource_production');
+		//console.log("Sent resource_production from client");
+	});
+	//When mouse is over the button the cursor will be changed
+	menuRollDice.on('mouseover', function () {
+		document.body.style.cursor = 'pointer';
+	});
+	menuRollDice.on('mouseout', function () {
+		document.body.style.cursor = 'default';
 	});
 	
 	//var diceSpriteHeight = screenWidth * .033333;
@@ -1191,17 +1487,17 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 						diceSpriteHeight, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight
 					],
 			dieOne1:[	0, 0, diceSpriteHeight, diceSpriteHeight],
-			dieOne2:[	0, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
-			dieOne3:[	0, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
-			dieOne4:[	0, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
-			dieOne5:[	0, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight],
-			dieOne6:[	0, diceSpriteHeight * 6, diceSpriteHeight, diceSpriteHeight],
+			dieOne2:[	0, diceSpriteHeight, diceSpriteHeight, diceSpriteHeight],
+			dieOne3:[	0, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
+			dieOne4:[	0, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
+			dieOne5:[	0, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
+			dieOne6:[	0, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight],
 			dieTwo1:[	diceSpriteHeight, 0, diceSpriteHeight, diceSpriteHeight],
-			dieTwo2:[	diceSpriteHeight, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
-			dieTwo3:[	diceSpriteHeight, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
-			dieTwo4:[	diceSpriteHeight, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
-			dieTwo5:[	diceSpriteHeight, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight],
-			dieTwo6:[	diceSpriteHeight, diceSpriteHeight * 6, diceSpriteHeight, diceSpriteHeight]
+			dieTwo2:[	diceSpriteHeight, diceSpriteHeight, diceSpriteHeight, diceSpriteHeight],
+			dieTwo3:[	diceSpriteHeight, diceSpriteHeight * 2, diceSpriteHeight, diceSpriteHeight],
+			dieTwo4:[	diceSpriteHeight, diceSpriteHeight * 3, diceSpriteHeight, diceSpriteHeight],
+			dieTwo5:[	diceSpriteHeight, diceSpriteHeight * 4, diceSpriteHeight, diceSpriteHeight],
+			dieTwo6:[	diceSpriteHeight, diceSpriteHeight * 5, diceSpriteHeight, diceSpriteHeight]
 					};
 	var menuDie1 = new Kinetic.Sprite({
 		x: menuPosStartX,
@@ -1230,16 +1526,18 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	
 	//dice functionality
 	//When clicked, send the message 'end_turn' to the server
-	var isDiceOn = false;
+	//var isDiceOn = false;
+	/*
 	menuRollDice.on('click' || 'tap', function(){
-		if(!isDiceOn)
-		{
-			isDiceOn = true;
-			menuDie1.start();
-			menuDie2.start();
-			setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, Math.random() * (1800 - 1500) + 1500);
-		}	
+		//if(!isDiceOn)
+		//{
+		//	isDiceOn = true;
+		//	menuDie1.start();
+		//	menuDie2.start();
+		//	setTimeout( function() { isDiceOn = false; menuDie1.stop(); menuDie2.stop();}, Math.random() * (1800 - 1500) + 1500);
+		//}	
 		socket.emit('resource_production');
+		//socket.emit('resource_production');
 		//console.log("Sent resource_production from client");
 	});
 	//When mouse is over the button the cursor will be changed
@@ -1249,6 +1547,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	menuRollDice.on('mouseout', function () {
 		document.body.style.cursor = 'default';
 	});
+*/
 	
 	var menuUnderlay1 = new Kinetic.Rect({
 		x: 0,
@@ -1276,7 +1575,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var resourceCattleText = new Kinetic.Text({
 		x: resourceCattle.getAbsolutePosition().x + resourceCattle.getHeight() / 2,
 		y: resourceCattle.getAbsolutePosition().y + resourceCattle.getHeight(),
-		text: '0',
+		text: '2',
 		fontSize: screenWidth * .010417,
 		ontFamily: 'Calibri',
         fill: 'black'
@@ -1291,7 +1590,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var resourceRedClayText = new Kinetic.Text({
 		x: resourceRedClay.getAbsolutePosition().x + resourceRedClay.getHeight() / 2,
 		y: resourceRedClay.getAbsolutePosition().y + resourceRedClay.getHeight(),
-		text: '0',
+		text: '2',
 		fontSize: screenWidth * .010417,
 		ontFamily: 'Calibri',
         fill: 'black'
@@ -1306,7 +1605,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var resourceCottonText = new Kinetic.Text({
 		x: resourceCotton.getAbsolutePosition().x + resourceCotton.getHeight() / 2,
 		y: resourceCotton.getAbsolutePosition().y + resourceCotton.getHeight(),
-		text: '0',
+		text: '2',
 		fontSize: screenWidth * .010417,
 		ontFamily: 'Calibri',
         fill: 'black'
@@ -1321,7 +1620,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var resourceLimestoneText = new Kinetic.Text({
 		x: resourceLimestone.getAbsolutePosition().x + resourceLimestone.getHeight() / 2,
 		y: resourceLimestone.getAbsolutePosition().y + resourceLimestone.getHeight(),
-		text: '0',
+		text: '2',
 		fontSize: screenWidth * .010417,
 		ontFamily: 'Calibri',
         fill: 'black'
@@ -1336,7 +1635,7 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	var resourceOilText = new Kinetic.Text({
 		x: resourceOil.getAbsolutePosition().x + resourceOil.getHeight() / 2,
 		y: resourceOil.getAbsolutePosition().y + resourceOil.getHeight(),
-		text: '0',
+		text: '2',
 		fontSize: screenWidth * .010417,
 		ontFamily: 'Calibri',
         fill: 'black'
@@ -1364,9 +1663,5 @@ preLoadImages(arrayImageAddreses).done(function(arrayImages){
 	menuLayer.add(resourceOilText);
 	
 	canvas.add(menuLayer);
-	
-	
-	
 	//console.log(canvas.toJSON());
-	
 });
